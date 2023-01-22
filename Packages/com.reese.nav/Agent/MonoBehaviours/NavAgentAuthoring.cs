@@ -1,10 +1,11 @@
 ﻿using Unity.Entities;
 using UnityEngine;
+using static UnityEngine.EventSystems.EventTrigger;
 
 namespace Reese.Nav
 {
     /// <summary>Authors a NavAgent.</summary>
-    public class NavAgentAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+    public class NavAgentAuthoring : MonoBehaviour
     {
         /// <summary>The agent's jump angle in degrees.</summary>
         [SerializeField]
@@ -42,24 +43,27 @@ namespace Reese.Nav
         [SerializeField]
         bool isTerrainCapable = default;
 
-        public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+        class NavAgentAuthoringBaker : Baker<NavAgentAuthoring>
         {
-            dstManager.AddComponentData(entity, new NavAgent
+            public override void Bake(NavAgentAuthoring authoring)
             {
-                JumpDegrees = jumpDegrees,
-                JumpGravity = jumpGravity,
-                JumpSpeedMultiplierX = jumpSpeedMultiplierX,
-                JumpSpeedMultiplierY = jumpSpeedMultiplierY,
-                TranslationSpeed = translationSpeed,
-                RotationSpeed = rotationSpeed,
-                TypeID = NavUtil.GetAgentType(type),
-                Offset = offset
-            });
+                AddComponent(new NavAgent
+                {
+                    JumpDegrees = authoring.jumpDegrees,
+                    JumpGravity = authoring.jumpGravity,
+                    JumpSpeedMultiplierX = authoring.jumpSpeedMultiplierX,
+                    JumpSpeedMultiplierY = authoring.jumpSpeedMultiplierY,
+                    TranslationSpeed = authoring.translationSpeed,
+                    RotationSpeed = authoring.rotationSpeed,
+                    TypeID = NavUtil.GetAgentType(authoring.type),
+                    Offset = authoring.offset
+                });
 
-            dstManager.AddComponent<NavNeedsSurface>(entity);
-            dstManager.AddComponent<NavFixTranslation>(entity);
+                AddComponent<NavNeedsSurface>();
+                AddComponent<NavFixTranslation>();
 
-            if (isTerrainCapable) dstManager.AddComponent<NavTerrainCapable>(entity);
+                if (authoring.isTerrainCapable) AddComponent<NavTerrainCapable>();
+            }
         }
     }
 }

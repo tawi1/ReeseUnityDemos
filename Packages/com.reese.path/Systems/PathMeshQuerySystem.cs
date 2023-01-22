@@ -31,9 +31,9 @@ namespace Reese.Path
     /// But here we index each query by native thread, taking thread
     /// safety into our own hands.</summary>
     [UpdateInGroup(typeof(InitializationSystemGroup))]
-    unsafe public class PathMeshQuerySystem : ComponentSystem
+    unsafe public partial class PathMeshQuerySystem : SystemBase
     {
-        PathSystem pathSystem => World.GetOrCreateSystem<PathSystem>();
+        PathSystem pathSystem => World.GetOrCreateSystemManaged<PathSystem>();
 
         /// <summary>An array of structs containing pointers, each referencing
         /// its own respective NavMeshQuery.</summary>

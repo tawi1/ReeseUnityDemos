@@ -11,7 +11,7 @@ namespace Reese.Demo
 {
     partial class NavFlockingDestinationSystem : SystemBase
     {
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
+        EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<BeginSimulationEntityCommandBufferSystem>();
 
         protected override void OnCreate()
         {
@@ -21,9 +21,9 @@ namespace Reese.Demo
         protected override void OnUpdate()
         {
             var commandBuffer = barrier.CreateCommandBuffer().AsParallelWriter();
-            var jumpableBufferFromEntity = GetBufferFromEntity<NavJumpableBufferElement>(true);
-            var renderBoundsFromEntity = GetComponentDataFromEntity<RenderBounds>(true);
-            var randomArray = World.GetExistingSystem<RandomSystem>().RandomArray;
+            var jumpableBufferFromEntity = GetBufferLookup<NavJumpableBufferElement>(true);
+            var renderBoundsFromEntity = GetComponentLookup<RenderBounds>(true);
+            var randomArray = World.GetExistingSystemManaged<RandomSystem>().RandomArray;
 
             Entities
                 .WithNone<NavProblem, NavDestination>()

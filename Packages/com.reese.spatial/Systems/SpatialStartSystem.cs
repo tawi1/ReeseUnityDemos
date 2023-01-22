@@ -8,13 +8,9 @@ using Unity.Transforms;
 namespace Reese.Spatial
 {
     /// <summary>Detects the entry and exit of activators to and from the bounds of triggers.</summary>
+    [UpdateBefore(typeof(PhysicsSystemGroup))]
     public partial class SpatialStartSystem : SystemBase
     {
-        BuildPhysicsWorld buildPhysicsWorld => World.GetOrCreateSystem<BuildPhysicsWorld>();
-
-        protected override void OnStartRunning()
-            => this.RegisterPhysicsRuntimeSystemReadOnly();
-
         protected override void OnUpdate()
         {
             Entities
@@ -61,11 +57,11 @@ namespace Reese.Spatial
                 .WithStructuralChanges()
                 .Run();
 
-            var activatorFromEntity = GetComponentDataFromEntity<SpatialActivator>(true);
+            var activatorFromEntity = GetComponentLookup<SpatialActivator>(true);
 
-            var tagsFromEntity = GetBufferFromEntity<SpatialTag>(true);
+            var tagsFromEntity = GetBufferLookup<SpatialTag>(true);
 
-            var collisionWorld = buildPhysicsWorld.PhysicsWorld.CollisionWorld;
+            var collisionWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().PhysicsWorld.CollisionWorld;
 
             Entities
                 .WithAll<SpatialTag>()

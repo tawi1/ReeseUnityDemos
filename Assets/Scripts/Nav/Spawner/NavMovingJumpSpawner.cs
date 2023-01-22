@@ -43,7 +43,7 @@ namespace Reese.Demo
                 });
 
                 entityManager.AddComponent<Parent>(entities[i]);
-                entityManager.AddComponent<LocalToParent>(entities[i]);
+                entityManager.AddComponent<ParentTransform>(entities[i]);
                 entityManager.AddComponent<NavNeedsSurface>(entities[i]);
             }
 

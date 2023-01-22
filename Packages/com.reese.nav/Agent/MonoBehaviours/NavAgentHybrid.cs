@@ -87,7 +87,7 @@ namespace Reese.Nav
         Vector3 lastWorldDestination = default;
 
         EntityManager entityManager => World.DefaultGameObjectInjectionWorld.EntityManager;
-        NavSurfaceSystem surfaceSystem => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<NavSurfaceSystem>();
+        NavSurfaceSystem surfaceSystem => World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<NavSurfaceSystem>();
 
         /// <summary>Stops the agent from navigating (waits for jumping or falling to complete).</summary>
         public void Stop()
@@ -104,15 +104,13 @@ namespace Reese.Nav
                 )
             });
 
-            if (!entityManager.HasComponent<Rotation>(Entity)) entityManager.AddComponent<Rotation>(Entity);
-
             if (!entityManager.HasComponent<Parent>(Entity))
             {
                 entityManager.AddComponent<Parent>(Entity);
-                entityManager.AddComponent<LocalToParent>(Entity);
+                entityManager.AddComponent<ParentTransform>(Entity);
             }
 
-            if (!entityManager.HasComponent<Translation>(Entity)) entityManager.AddComponent<Translation>(Entity);
+            if (!entityManager.HasComponent<LocalTransform>(Entity)) entityManager.AddComponent<LocalTransform>(Entity);
 
             entityManager.AddComponent<NavNeedsSurface>(Entity);
         }
@@ -162,8 +160,7 @@ namespace Reese.Nav
                 Entity.Equals(Entity.Null) ||
                 !entityManager.HasComponent<NavAgent>(Entity) ||
                 !entityManager.HasComponent<Parent>(Entity) ||
-                !entityManager.HasComponent<Translation>(Entity) ||
-                !entityManager.HasComponent<Rotation>(Entity)
+                !entityManager.HasComponent<LocalTransform>(Entity)
             ) return;
 
             var agent = entityManager.GetComponentData<NavAgent>(Entity);
@@ -205,8 +202,10 @@ namespace Reese.Nav
             if (surfaceGameObject == null) return;
 
             gameObject.transform.SetParent(surfaceGameObject.transform);
-            gameObject.transform.localPosition = entityManager.GetComponentData<Translation>(Entity).Value / surfaceGameObject.transform.localScale;
-            gameObject.transform.localRotation = entityManager.GetComponentData<Rotation>(Entity).Value;
+
+            var localTransform = entityManager.GetComponentData<LocalTransform>(Entity);
+            gameObject.transform.localPosition = localTransform.Position / surfaceGameObject.transform.localScale;
+            gameObject.transform.localRotation = localTransform.Rotation;
 
             if (FollowTarget != null && FollowTarget.GetComponent<NavAgentHybrid>() != null)
             {

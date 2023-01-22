@@ -8,12 +8,12 @@ using UnityEngine;
 namespace Reese.Nav
 {
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-    [UpdateBefore(typeof(BuildPhysicsWorld))]
+    [UpdateBefore(typeof(PhysicsSystemGroup))]
     [UpdateAfter(typeof(NavQuadrantSystem))]
     public partial class NavFlockingSystem : SystemBase
     {
-        NavSystem navSystem => World.GetOrCreateSystem<NavSystem>();
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
+        NavSystem navSystem => World.GetOrCreateSystemManaged<NavSystem>();
+        EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<BeginSimulationEntityCommandBufferSystem>();
         public bool IsDebugging = false;
 
         protected override void OnUpdate()
@@ -23,10 +23,10 @@ namespace Reese.Nav
             var isDebugging = IsDebugging;
 
             Entities
-                .WithAll<NavFlocking, NavWalking, LocalToParent>()
+                .WithAll<NavFlocking, NavWalking, ParentTransform>()
                 .WithNone<NavProblem, NavFalling, NavJumping>()
                 .WithReadOnly(quadrantHashMap)
-                .ForEach((Entity entity, ref NavSteering steering, in NavAgent agent, in Translation translation, in LocalToWorld localToWorld) =>
+                .ForEach((Entity entity, ref NavSteering steering, in NavAgent agent, in LocalTransform transform, in LocalToWorld localToWorld) =>
                     {
                         var entityHashMapKey = NavQuadrantSystem.HashPosition(localToWorld.Position, flockingSettings);
 

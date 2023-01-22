@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Reese.Demo
 {
-    public class RotatorAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+    public class RotatorAuthoring : MonoBehaviour
     {
         [SerializeField]
         Vector3 fromRelativeAngles = new Vector3(0, 0, 0);
@@ -14,14 +14,17 @@ namespace Reese.Demo
         [SerializeField]
         float frequency = 1;
 
-        public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+        class RotatorAuthoringBaker:Baker<RotatorAuthoring>
         {
-            dstManager.AddComponentData(entity, new Rotator
+            public override void Bake(RotatorAuthoring rotatorAuthoring)
             {
-                FromRelativeAngles = fromRelativeAngles + transform.localRotation.eulerAngles,
-                ToRelativeAngles = toRelativeAngles + transform.localRotation.eulerAngles,
-                Frequency = frequency
-            });
+                AddComponent(new Rotator
+                {
+                    FromRelativeAngles = rotatorAuthoring.fromRelativeAngles + rotatorAuthoring.transform.localRotation.eulerAngles,
+                    ToRelativeAngles = rotatorAuthoring.toRelativeAngles + rotatorAuthoring.transform.localRotation.eulerAngles,
+                    Frequency = rotatorAuthoring.frequency
+                });
+            }
         }
     }
 }

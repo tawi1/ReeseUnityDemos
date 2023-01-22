@@ -5,7 +5,7 @@ namespace Reese.Utility
 {
     public partial class RootSystem : SystemBase
     {
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<EndSimulationEntityCommandBufferSystem>();
 
         protected override void OnUpdate()
         {

@@ -1,10 +1,11 @@
 ﻿using Unity.Entities;
 using UnityEngine;
+using static UnityEngine.EventSystems.EventTrigger;
 
 namespace Reese.Nav
 {
     /// <summary>Authors a NavFollow.</summary>
-    public class NavFollowAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+    public class NavFollowAuthoring : MonoBehaviour
     {
         [SerializeField]
         GameObject target = default;
@@ -15,14 +16,17 @@ namespace Reese.Nav
         [SerializeField]
         float minDistance = default;
 
-        public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+        class NavFollowAuthoringBaker : Baker<NavFollowAuthoring>
         {
-            dstManager.AddComponentData(entity, new NavFollow
+            public override void Bake(NavFollowAuthoring authoring)
             {
-                Target = conversionSystem.GetPrimaryEntity(target),
-                MaxDistance = maxDistance,
-                MinDistance = minDistance
-            });
+                AddComponent(new NavFollow
+                {
+                    Target = GetEntity(authoring.target),
+                    MaxDistance = authoring.maxDistance,
+                    MinDistance = authoring.minDistance
+                });
+            }
         }
     }
 }

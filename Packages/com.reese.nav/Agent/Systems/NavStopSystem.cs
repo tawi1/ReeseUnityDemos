@@ -5,19 +5,19 @@ using Unity.Physics.Systems;
 namespace Reese.Nav
 {
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-    [UpdateBefore(typeof(BuildPhysicsWorld))]
+    [UpdateBefore(typeof(PhysicsSystemGroup))]
     [UpdateAfter(typeof(NavMoveSystem))]
     public partial class NavStopSystem : SystemBase
     {
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<EndSimulationEntityCommandBufferSystem>();
 
         protected override void OnUpdate()
         {
             var commandBuffer = barrier.CreateCommandBuffer().AsParallelWriter();
 
-            var walkingFromEntity = GetComponentDataFromEntity<NavWalking>(true);
-            var destinationFromEntity = GetComponentDataFromEntity<NavDestination>(true);
-            var planningFromEntity = GetComponentDataFromEntity<NavPlanning>(true);
+            var walkingFromEntity = GetComponentLookup<NavWalking>(true);
+            var destinationFromEntity = GetComponentLookup<NavDestination>(true);
+            var planningFromEntity = GetComponentLookup<NavPlanning>(true);
 
             Entities
                 .WithNone<NavFalling, NavJumping>()

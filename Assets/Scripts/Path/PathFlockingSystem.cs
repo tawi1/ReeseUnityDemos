@@ -12,8 +12,8 @@ namespace Reese.Path
     {
         public bool IsDebugging = false;
 
-        PathFlockingSettingsSystem flockingSettingsSystem => World.GetOrCreateSystem<PathFlockingSettingsSystem>();
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
+        PathFlockingSettingsSystem flockingSettingsSystem => World.GetOrCreateSystemManaged<PathFlockingSettingsSystem>();
+        EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<BeginSimulationEntityCommandBufferSystem>();
 
         protected override void OnUpdate()
         {

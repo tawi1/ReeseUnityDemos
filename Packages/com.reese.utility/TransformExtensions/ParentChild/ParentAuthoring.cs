@@ -4,8 +4,8 @@ using UnityEngine;
 namespace Reese.Utility
 {
     /// <summary>Authors a parent.</summary>
-    public class ParentAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+    public class ParentAuthoring : MonoBehaviour
     {
-        public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem) { }
+        //public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem) { }
     }
 }

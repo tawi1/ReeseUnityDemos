@@ -9,14 +9,14 @@ namespace Reese.Demo
     {
         protected override void OnUpdate()
         {
-            var elapsedSeconds = (float)Time.ElapsedTime;
-            var deltaSeconds = Time.DeltaTime;
+            var elapsedSeconds = (float)SystemAPI.Time.ElapsedTime;
+            var deltaSeconds = SystemAPI.Time.DeltaTime;
 
             Entities
                 .WithAny<NavTranslator>()
-                .ForEach((ref Translation translation, ref Rotation rotation) =>
+                .ForEach((ref LocalTransform transform) =>
                 {
-                    translation.Value.y = math.sin(elapsedSeconds) * 10;
+                    transform.Position.y = math.sin(elapsedSeconds) * 10;
                 })
                 .WithName("NavTranslatorJob")
                 .ScheduleParallel();

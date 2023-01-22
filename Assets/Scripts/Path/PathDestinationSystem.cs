@@ -13,7 +13,7 @@ namespace Reese.Demo
     {
         AABB surfaceAabb = default;
 
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
+        EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<BeginSimulationEntityCommandBufferSystem>();
 
         protected override void OnCreate()
         {
@@ -35,7 +35,7 @@ namespace Reese.Demo
         protected override void OnUpdate()
         {
             var commandBuffer = barrier.CreateCommandBuffer().AsParallelWriter();
-            var randomArray = World.GetExistingSystem<RandomSystem>().RandomArray;
+            var randomArray = World.GetExistingSystemManaged<RandomSystem>().RandomArray;
             var surfaceAABB = surfaceAabb;
 
             Entities

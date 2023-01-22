@@ -13,7 +13,7 @@ namespace Reese.Demo
     {
         public static readonly float STOPPING_DISTANCE = 1;
 
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
+        EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<BeginSimulationEntityCommandBufferSystem>();
 
         protected override void OnCreate()
         {
@@ -24,14 +24,14 @@ namespace Reese.Demo
         {
             var commandBuffer = barrier.CreateCommandBuffer().AsParallelWriter();
 
-            var deltaSeconds = Time.DeltaTime;
+            var deltaSeconds = SystemAPI.Time.DeltaTime;
 
-            var flockingFromEntity = GetComponentDataFromEntity<PathFlocking>(true);
+            var flockingFromEntity = GetComponentLookup<PathFlocking>(true);
 
             Entities
                 .WithNone<PathProblem, PathDestination, PathPlanning>()
                 .WithReadOnly(flockingFromEntity)
-                .ForEach((Entity entity, int entityInQueryIndex, ref Translation translation, ref Rotation rotation, ref DynamicBuffer<PathBufferElement> pathBuffer, ref PathSteering steering) =>
+                .ForEach((Entity entity, int entityInQueryIndex, ref LocalTransform transform, ref DynamicBuffer<PathBufferElement> pathBuffer, ref PathSteering steering) =>
                 {
                     if (pathBuffer.Length == 0)
                     {
@@ -42,14 +42,14 @@ namespace Reese.Demo
 
                     var currentWaypoint = pathBuffer.Length - 1;
 
-                    if (math.distance(translation.Value, pathBuffer[currentWaypoint]) < STOPPING_DISTANCE)
+                    if (math.distance(transform.Position, pathBuffer[currentWaypoint]) < STOPPING_DISTANCE)
                     {
                         pathBuffer.RemoveAt(currentWaypoint);
 
                         if (pathBuffer.Length == 0) return;
                     }
 
-                    var heading = math.normalizesafe(pathBuffer[pathBuffer.Length - 1].Value - translation.Value);
+                    var heading = math.normalizesafe(pathBuffer[pathBuffer.Length - 1].Value - transform.Position);
 
                     if (flockingFromEntity.HasComponent(entity))
                     {

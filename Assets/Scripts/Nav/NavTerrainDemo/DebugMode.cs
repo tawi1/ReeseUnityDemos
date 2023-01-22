@@ -35,12 +35,12 @@ namespace Reese.Demo
             entityQuery = entityManager.CreateEntityQuery(
                 new EntityQueryDesc
                 {
-                    All = new ComponentType[] { typeof(NavWalking), typeof(LocalToParent) },
+                    All = new ComponentType[] { typeof(NavWalking), typeof(ParentTransform) },
                     None = new ComponentType[] { typeof(NavPlanning), typeof(NavJumping) }
                 }
             );
-            navGroundSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<NavGroundSystem>();
-            debugSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<DebugSystem>();
+            navGroundSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<NavGroundSystem>();
+            debugSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<DebugSystem>();
             debugSystem.DrawPathOffset = offsetForDrawPath;
         }
 

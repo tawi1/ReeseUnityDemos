@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Reese.Path
 {
     /// <summary>Authors a PathFollow.</summary>
-    public class PathFollowAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+    public class PathFollowAuthoring : MonoBehaviour
     {
         [SerializeField]
         GameObject target = default;
@@ -15,14 +15,17 @@ namespace Reese.Path
         [SerializeField]
         float minDistance = default;
 
-        public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+        class PathFollowAuthoringBaker : Baker<PathFollowAuthoring>
         {
-            dstManager.AddComponentData(entity, new PathFollow
+            public override void Bake(PathFollowAuthoring authoring)
             {
-                Target = conversionSystem.GetPrimaryEntity(target),
-                MaxDistance = maxDistance,
-                MinDistance = minDistance
-            });
+                AddComponent(new PathFollow
+                {
+                    Target = GetEntity(authoring.target),
+                    MaxDistance = authoring.maxDistance,
+                    MinDistance = authoring.minDistance
+                });
+            }
         }
     }
 }

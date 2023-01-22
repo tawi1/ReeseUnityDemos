@@ -14,36 +14,36 @@ namespace Reese.Demo
         public static readonly float TRANSLATION_SPEED = 20;
         public static readonly float ROTATION_SPEED = 0.3f;
 
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
+        EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<BeginSimulationEntityCommandBufferSystem>();
 
         protected override void OnCreate()
         {
             if (!SceneManager.GetActiveScene().name.Equals("PathDemo")) Enabled = false;
         }
-        static void Translate(float deltaSeconds, PathSteering steering, ref Translation translation)
-            => translation.Value += steering.CurrentHeading * TRANSLATION_SPEED * deltaSeconds;
+        static void Translate(float deltaSeconds, PathSteering steering, ref LocalTransform transform)
+            => transform.Position += steering.CurrentHeading * TRANSLATION_SPEED * deltaSeconds;
 
-        static void Rotate(float deltaSeconds, PathSteering steering, Translation translation, ref Rotation rotation)
+        static void Rotate(float deltaSeconds, PathSteering steering, ref LocalTransform transform)
         {
-            var lookAt = translation.Value + steering.CurrentHeading;
-            lookAt.y = translation.Value.y;
+            var lookAt = transform.Position + steering.CurrentHeading;
+            lookAt.y = transform.Position.y;
 
-            var lookRotation = quaternion.LookRotationSafe(lookAt - translation.Value, math.up());
+            var lookRotation = quaternion.LookRotationSafe(lookAt - transform.Position, math.up());
 
-            rotation.Value = math.slerp(rotation.Value, lookRotation, deltaSeconds / ROTATION_SPEED);
+            transform.Rotation = math.slerp(transform.Rotation, lookRotation, deltaSeconds / ROTATION_SPEED);
         }
 
         protected override void OnUpdate()
         {
             var commandBuffer = barrier.CreateCommandBuffer().AsParallelWriter();
-            var deltaSeconds = Time.DeltaTime;
+            var deltaSeconds = SystemAPI.Time.DeltaTime;
 
             Entities
                 .WithNone<PathProblem, PathDestination, PathPlanning>()
-                .ForEach((Entity entity, int entityInQueryIndex, ref Translation translation, ref Rotation rotation, in PathSteering steering) =>
+                .ForEach((Entity entity, int entityInQueryIndex, ref LocalTransform transform, in PathSteering steering) =>
                 {
-                    Translate(deltaSeconds, steering, ref translation);
-                    Rotate(deltaSeconds, steering, translation, ref rotation);
+                    Translate(deltaSeconds, steering, ref transform);
+                    Rotate(deltaSeconds, steering, ref transform);
                 })
                 .WithName("PathMoveJob")
                 .ScheduleParallel();

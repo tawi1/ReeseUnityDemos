@@ -15,15 +15,15 @@ namespace Reese.Path
     /// third-party PathUtils.</summary>
     unsafe public partial class PathPlanSystem : SystemBase
     {
-        PathSystem pathSystem => World.GetOrCreateSystem<PathSystem>();
+        PathSystem pathSystem => World.GetOrCreateSystemManaged<PathSystem>();
 
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<EndSimulationEntityCommandBufferSystem>();
 
         protected override void OnUpdate()
         {
             var commandBuffer = barrier.CreateCommandBuffer().AsParallelWriter();
-            var pathBufferFromEntity = GetBufferFromEntity<PathBufferElement>();
-            var navMeshQueryPointerArray = World.GetExistingSystem<PathMeshQuerySystem>().PointerArray;
+            var pathBufferFromEntity = GetBufferLookup<PathBufferElement>();
+            var navMeshQueryPointerArray = World.GetExistingSystemManaged<PathMeshQuerySystem>().PointerArray;
             var settings = pathSystem.Settings;
 
             Entities
@@ -94,7 +94,7 @@ namespace Reese.Path
                         PathConstants.PATH_NODE_MAX
                     );
 
-                    var pathBuffer = !pathBufferFromEntity.HasComponent(entity) ? commandBuffer.AddBuffer<PathBufferElement>(entityInQueryIndex, entity) : pathBufferFromEntity[entity];
+                    var pathBuffer = !pathBufferFromEntity.HasBuffer(entity) ? commandBuffer.AddBuffer<PathBufferElement>(entityInQueryIndex, entity) : pathBufferFromEntity[entity];
 
                     if (status == PathQueryStatus.Success)
                     {

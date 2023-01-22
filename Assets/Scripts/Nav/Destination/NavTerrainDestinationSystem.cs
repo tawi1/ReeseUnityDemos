@@ -2,6 +2,7 @@
 using Reese.Random;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Physics;
 using Unity.Physics.Systems;
 using Unity.Rendering;
 using Unity.Transforms;
@@ -13,9 +14,8 @@ namespace Reese.Demo
     [UpdateBefore(typeof(BuildPhysicsWorld))]
     public partial class NavTerrainDestinationSystem : SystemBase
     {
-        NavSystem navSystem => World.GetOrCreateSystem<NavSystem>();
-        BuildPhysicsWorld buildPhysicsWorld => World.GetExistingSystem<BuildPhysicsWorld>();
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
+        NavSystem navSystem => World.GetOrCreateSystemManaged<NavSystem>();
+        EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<BeginSimulationEntityCommandBufferSystem>();
 
         protected override void OnCreate()
         {
@@ -25,12 +25,12 @@ namespace Reese.Demo
 
         protected override void OnUpdate()
         {
-            var physicsWorld = buildPhysicsWorld.PhysicsWorld;
+            var physicsWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().PhysicsWorld;
             var settings = navSystem.Settings;
             var commandBuffer = barrier.CreateCommandBuffer().AsParallelWriter();
-            var jumpableBufferFromEntity = GetBufferFromEntity<NavJumpableBufferElement>(true);
-            var renderBoundsFromEntity = GetComponentDataFromEntity<RenderBounds>(true);
-            var randomArray = World.GetExistingSystem<RandomSystem>().RandomArray;
+            var jumpableBufferFromEntity = GetBufferLookup<NavJumpableBufferElement>(true);
+            var renderBoundsFromEntity = GetComponentLookup<RenderBounds>(true);
+            var randomArray = World.GetExistingSystemManaged<RandomSystem>().RandomArray;
 
             Entities
                 .WithNone<NavProblem, NavDestination, NavPlanning>()
@@ -77,7 +77,6 @@ namespace Reese.Demo
                 .ScheduleParallel();
 
             barrier.AddJobHandleForProducer(Dependency);
-            buildPhysicsWorld.AddInputDependencyToComplete(Dependency);
         }
     }
 }

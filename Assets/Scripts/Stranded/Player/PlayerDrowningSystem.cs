@@ -27,7 +27,7 @@ namespace Reese.Demo.Stranded
                 if (deathSequenceController == null) return;
             }
 
-            var elapsedSeconds = (float)Time.ElapsedTime;
+            var elapsedSeconds = (float)SystemAPI.Time.ElapsedTime;
             var controller = deathSequenceController;
             var ran = false;
 

@@ -8,15 +8,13 @@ namespace Reese.Utility
 {
     public partial class FixTranslationSystem : SystemBase
     {
-        BuildPhysicsWorld buildPhysicsWorld => World.GetExistingSystem<BuildPhysicsWorld>();
-
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        EntityCommandBufferSystem barrier => World.GetExistingSystemManaged<EndSimulationEntityCommandBufferSystem>();
 
         protected override void OnUpdate()
         {
             var commandBuffer = barrier.CreateCommandBuffer().AsParallelWriter();
 
-            var localToWorldFromEntity = GetComponentDataFromEntity<LocalToWorld>(true);
+            var localToWorldFromEntity = GetComponentLookup<LocalToWorld>(true);
 
             // Corrects the translation of children with parents not at the origin:
 
@@ -24,7 +22,7 @@ namespace Reese.Utility
                 .WithChangeFilter<PreviousParent>()
                 .WithAll<FixTranslation>()
                 .WithReadOnly(localToWorldFromEntity)
-                .ForEach((Entity entity, int entityInQueryIndex, ref Translation translation, in PreviousParent previousParent, in Parent parent) =>
+                .ForEach((Entity entity, int entityInQueryIndex, ref LocalTransform localTransform, in PreviousParent previousParent, in Parent parent) =>
                 {
                     if (previousParent.Value.Equals(Entity.Null) || !localToWorldFromEntity.HasComponent(parent.Value)) return;
 
@@ -36,7 +34,7 @@ namespace Reese.Utility
                         return;
                     }
 
-                    translation.Value = translation.Value.MultiplyPoint3x4(math.inverse(parentTransform.Value));
+                    localTransform.Position = localTransform.Position.MultiplyPoint3x4(math.inverse(parentTransform.Value));
 
                     commandBuffer.RemoveComponent<FixTranslation>(entityInQueryIndex, entity);
                 })
@@ -46,7 +44,7 @@ namespace Reese.Utility
             // Corrects transforms by re-parenting entities with missing LocalToParent components:
 
             Entities
-                .WithNone<LocalToParent>()
+                .WithNone<ParentTransform>()
                 .ForEach((Entity entity, int entityInQueryIndex, in Parent parent) =>
                 {
                     commandBuffer.RemoveComponent<Parent>(entityInQueryIndex, entity);
@@ -56,7 +54,7 @@ namespace Reese.Utility
                         Value = parent.Value
                     });
 
-                    commandBuffer.AddComponent<LocalToParent>(entityInQueryIndex, entity);
+                    commandBuffer.AddComponent<ParentTransform>(entityInQueryIndex, entity);
                 })
                 .WithName("ReparentJob")
                 .ScheduleParallel();

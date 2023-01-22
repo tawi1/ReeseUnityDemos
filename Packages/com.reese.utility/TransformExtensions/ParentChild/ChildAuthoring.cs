@@ -1,31 +1,33 @@
 ﻿using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
-using static Unity.Entities.ConvertToEntity;
 
 namespace Reese.Utility
 {
     /// <summary>Authors a child.</summary>
-    public class ChildAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+    public class ChildAuthoring : MonoBehaviour
     {
         [SerializeField]
         ParentAuthoring parent = default;
 
-        public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+        class ChildAuthoringBaker : Baker<ChildAuthoring>
         {
-            dstManager.AddComponentData(entity, new Parent
+            public override void Bake(ChildAuthoring authoring)
             {
-                Value = conversionSystem.GetPrimaryEntity(parent)
-            });
+                AddComponent(new Parent
+                {
+                    Value = GetEntity(authoring.parent)
+                });
 
-            var convertToEntity = GetComponent<ConvertToEntity>();
+                //var convertToEntity = authoring.GetComponent<ConvertToEntity>();
 
-            if (
-                convertToEntity != null &&
-                convertToEntity.ConversionMode.Equals(Mode.ConvertAndInjectGameObject)
-            ) dstManager.AddComponent(entity, typeof(CopyTransformToGameObject));
+                //if (
+                //    convertToEntity != null &&
+                //    convertToEntity.ConversionMode.Equals(Mode.ConvertAndInjectGameObject)
+                //) AddComponent(typeof(CopyTransformToGameObject));
 
-            dstManager.AddComponent<FixTranslation>(entity);
+                AddComponent<FixTranslation>();
+            }
         }
     }
 }

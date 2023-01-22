@@ -8,7 +8,7 @@ namespace Reese.Random
     /// thread-indexed random number generators of the
     /// Unity.Mathematics.Random variety.</summary>
     [UpdateInGroup(typeof(InitializationSystemGroup))]
-    public class RandomSystem : ComponentSystem
+    public partial class RandomSystem : SystemBase
     {
         /// <summary>A NativeArray of thread-indexed Unity.Mathematics.Random
         /// number generators.</summary>

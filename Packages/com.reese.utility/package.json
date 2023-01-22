@@ -2,14 +2,14 @@
 	"name": "com.reese.utility",
 	"documentationUrl": "https://github.com/reeseschultz/ReeseUnityDemos/blob/master/Packages/com.reese.utility/README.md#reeses-utility-code",
 	"changelogUrl": "https://github.com/reeseschultz/ReeseUnityDemos/commits/master/Packages/com.reese.utility",
-	"version": "0.2.7",
+	"version": "0.2.8",
 	"displayName": "Reese's Utility Code",
 	"description": "General utility code for Unity, mainly DOTS-oriented.",
 	"dependencies": {
-		"com.unity.entities": "0.51.0-preview.32",
-		"com.unity.physics": "0.51.0-preview.32"
+		"com.unity.entities": "1.0.0-pre.15",
+		"com.unity.physics": "1.0.0-pre.15"
 	},
-	"unity": "2021.3",
+	"unity": "2022.2",
 	"unityRelease": "4f1",
 	"author": {
 		"name": "Reese Schultz",

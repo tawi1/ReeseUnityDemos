@@ -9,22 +9,21 @@ namespace Reese.Nav
     /// that parent-child relationships are maintained in lieu of
     /// Unity.Physics' efforts to destroy them.</summary>
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-    [UpdateBefore(typeof(BuildPhysicsWorld))]
+    [UpdateBefore(typeof(PhysicsSystemGroup))]
     public partial class NavBasisSystem : SystemBase
     {
         /// <summary>The default basis that all other bases and basis-lacking
         /// surfaces are parented to.</summary>
         public Entity DefaultBasis { get; private set; }
 
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
+        EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<BeginSimulationEntityCommandBufferSystem>();
 
         protected override void OnCreate()
         {
             DefaultBasis = World.EntityManager.CreateEntity();
             World.EntityManager.AddComponent(DefaultBasis, typeof(NavBasis));
             World.EntityManager.AddComponent(DefaultBasis, typeof(LocalToWorld));
-            World.EntityManager.AddComponent(DefaultBasis, typeof(Translation));
-            World.EntityManager.AddComponent(DefaultBasis, typeof(Rotation));
+            World.EntityManager.AddComponent(DefaultBasis, typeof(LocalTransform));
         }
 
         protected override void OnUpdate()
@@ -43,7 +42,7 @@ namespace Reese.Nav
                         Value = basis.ParentBasis
                     });
 
-                    commandBuffer.AddComponent<LocalToParent>(entityInQueryIndex, entity);
+                    commandBuffer.AddComponent<ParentTransform>(entityInQueryIndex, entity);
                 })
                 .WithName("NavAddParentToBasisJob")
                 .ScheduleParallel();

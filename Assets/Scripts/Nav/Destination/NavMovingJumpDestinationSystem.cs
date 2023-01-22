@@ -12,7 +12,7 @@ namespace Reese.Demo
 {
     partial class NavMovingJumpDestinationSystem : SystemBase
     {
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
+        EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<BeginSimulationEntityCommandBufferSystem>();
 
         protected override void OnCreate()
         {
@@ -23,22 +23,22 @@ namespace Reese.Demo
         protected override void OnUpdate()
         {
             var commandBuffer = barrier.CreateCommandBuffer().AsParallelWriter();
-            var jumpableBufferFromEntity = GetBufferFromEntity<NavJumpableBufferElement>(true);
-            var renderBoundsFromEntity = GetComponentDataFromEntity<RenderBounds>(true);
-            var localToWorldFromEntity = GetComponentDataFromEntity<LocalToWorld>(true);
-            var randomArray = World.GetExistingSystem<RandomSystem>().RandomArray;
+            var jumpableBufferFromEntity = GetBufferLookup<NavJumpableBufferElement>(true);
+            var renderBoundsFromEntity = GetComponentLookup<RenderBounds>(true);
+            var localToWorldFromEntity = GetComponentLookup<LocalToWorld>(true);
+            var randomArray = World.GetExistingSystemManaged<RandomSystem>().RandomArray;
 
             Entities
                 .WithNone<NavProblem, NavDestination>()
                 .WithReadOnly(jumpableBufferFromEntity)
                 .WithReadOnly(renderBoundsFromEntity)
                 .WithReadOnly(localToWorldFromEntity)
-                .WithNativeDisableParallelForRestriction(randomArray)
+                .WithNativeDisableContainerSafetyRestriction(randomArray)
                 .ForEach((Entity entity, int entityInQueryIndex, int nativeThreadIndex, ref NavAgent agent, in Parent surface) =>
                 {
                     if (
                         surface.Value.Equals(Entity.Null) ||
-                        !jumpableBufferFromEntity.HasComponent(surface.Value)
+                        !jumpableBufferFromEntity.HasBuffer(surface.Value)
                     ) return;
 
                     var jumpableSurfaces = jumpableBufferFromEntity[surface.Value];

@@ -14,16 +14,16 @@ namespace Reese.Nav.Quadrant
     }
 
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-    [UpdateBefore(typeof(BuildPhysicsWorld))]
+    [UpdateBefore(typeof(PhysicsSystemGroup))]
     [UpdateAfter(typeof(NavDestinationSystem))]
     public partial class NavQuadrantSystem : SystemBase
     {
-        public static NativeParallelMultiHashMap<int, QuadrantData> QuadrantHashMap;
+        public static NativeMultiHashMap<int, QuadrantData> QuadrantHashMap;
 
-        NavSystem navSystem => World.GetOrCreateSystem<NavSystem>();
+        NavSystem navSystem => World.GetOrCreateSystemManaged<NavSystem>();
 
         protected override void OnCreate()
-            => QuadrantHashMap = new NativeParallelMultiHashMap<int, QuadrantData>(0, Allocator.Persistent);
+            => QuadrantHashMap = new NativeMultiHashMap<int, QuadrantData>(0, Allocator.Persistent);
 
         protected override void OnDestroy()
             => QuadrantHashMap.Dispose();
@@ -60,7 +60,7 @@ namespace Reese.Nav.Quadrant
             => (int)(math.floor(position.x / flockingSettings.QuadrantCellSize) + flockingSettings.QuadrantZMultiplier * math.floor(position.z / flockingSettings.QuadrantCellSize));
 
         public static void SearchQuadrantNeighbors(
-            in NativeParallelMultiHashMap<int, QuadrantData> quadrantHashMap,
+            in NativeMultiHashMap<int, QuadrantData> quadrantHashMap,
             in int key,
             in Entity currentEntity,
             in NavAgent agent,
@@ -94,7 +94,7 @@ namespace Reese.Nav.Quadrant
         }
 
         static void SearchQuadrantNeighbor(
-            in NativeParallelMultiHashMap<int, QuadrantData> quadrantHashMap,
+            in NativeMultiHashMap<int, QuadrantData> quadrantHashMap,
             in int key,
             in Entity entity,
             in NavAgent agent,

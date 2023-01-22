@@ -3,29 +3,27 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Physics;
+using Unity.Physics.Systems;
 using Unity.Transforms;
 using static Reese.Nav.NavSystem;
-using BuildPhysicsWorld = Unity.Physics.Systems.BuildPhysicsWorld;
 
 namespace Reese.Nav
 {
     /// <summary>Calculates the current heading.</summary>
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-    [UpdateBefore(typeof(BuildPhysicsWorld))]
+    [UpdateBefore(typeof(PhysicsSystemGroup))]
     [UpdateAfter(typeof(NavCollisionSystem))]
     public partial class NavSteeringSystem : SystemBase
     {
-        NavSystem navSystem => World.GetOrCreateSystem<NavSystem>();
-        BuildPhysicsWorld buildPhysicsWorld => World.GetExistingSystem<BuildPhysicsWorld>();
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
+        NavSystem navSystem => World.GetOrCreateSystemManaged<NavSystem>();
+        EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<BeginSimulationEntityCommandBufferSystem>();
 
         static void HandleCompletePath(
-            ComponentDataFromEntity<LocalToWorld> localToWorldFromEntity,
+            ComponentLookup<LocalToWorld> localToWorldFromEntity,
             Entity entity,
-            Rotation rotation,
             ref NavAgent agent,
             Parent surface,
-            Translation translation,
+            LocalTransform transform,
             PhysicsWorld physicsWorld,
             float elapsedSeconds,
             EntityCommandBuffer.ParallelWriter commandBuffer,
@@ -36,7 +34,7 @@ namespace Reese.Nav
             var rayInput = new RaycastInput
             {
                 Start = localToWorldFromEntity[entity].Position + agent.Offset,
-                End = math.forward(rotation.Value) * settings.ObstacleRaycastDistanceMax,
+                End = math.forward(transform.Rotation) * settings.ObstacleRaycastDistanceMax,
                 Filter = new CollisionFilter
                 {
                     BelongsTo = NavUtil.ToBitMask(settings.ColliderLayer),
@@ -46,7 +44,7 @@ namespace Reese.Nav
 
             if (
                 !surface.Value.Equals(agent.DestinationSurface) &&
-                !NavUtil.ApproxEquals(translation.Value, agent.LocalDestination, settings.StoppingDistance) &&
+                !NavUtil.ApproxEquals(transform.Position, agent.LocalDestination, settings.StoppingDistance) &&
                 !physicsWorld.CastRay(rayInput, out _)
             )
             {
@@ -68,47 +66,47 @@ namespace Reese.Nav
         protected override void OnUpdate()
         {
             var commandBuffer = barrier.CreateCommandBuffer().AsParallelWriter();
-            var elapsedSeconds = (float)Time.ElapsedTime;
-            var deltaSeconds = Time.DeltaTime;
-            var physicsWorld = buildPhysicsWorld.PhysicsWorld;
+            var elapsedSeconds = (float)SystemAPI.Time.ElapsedTime;
+            var deltaSeconds = SystemAPI.Time.DeltaTime;
+            var physicsWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().PhysicsWorld;
             var settings = navSystem.Settings;
-            var pathBufferFromEntity = GetBufferFromEntity<NavPathBufferElement>();
+            var pathBufferFromEntity = GetBufferLookup<NavPathBufferElement>();
 
-            var localToWorldFromEntity = GetComponentDataFromEntity<LocalToWorld>(true);
-            var fallingFromEntity = GetComponentDataFromEntity<NavFalling>(true);
-            var jumpingFromEntity = GetComponentDataFromEntity<NavJumping>(true);
-            var flockingFromEntity = GetComponentDataFromEntity<NavFlocking>(true);
+            var localToWorldFromEntity = GetComponentLookup<LocalToWorld>(true);
+            var fallingFromEntity = GetComponentLookup<NavFalling>(true);
+            var jumpingFromEntity = GetComponentLookup<NavJumping>(true);
+            var flockingFromEntity = GetComponentLookup<NavFlocking>(true);
 
             Entities
                 .WithNone<NavProblem, NavPlanning>()
-                .WithAll<NavWalking, LocalToParent>()
+                .WithAll<NavWalking, ParentTransform>()
                 .WithReadOnly(localToWorldFromEntity)
                 .WithReadOnly(physicsWorld)
                 .WithReadOnly(jumpingFromEntity)
                 .WithReadOnly(fallingFromEntity)
                 .WithReadOnly(flockingFromEntity)
                 .WithNativeDisableParallelForRestriction(pathBufferFromEntity)
-                .ForEach((Entity entity, int entityInQueryIndex, ref NavAgent agent, ref Translation translation, ref NavSteering navSteering, ref Rotation rotation, in Parent surface) =>
+                .ForEach((Entity entity, int entityInQueryIndex, ref NavAgent agent, ref LocalTransform transform, ref NavSteering navSteering, in Parent surface) =>
                 {
-                    if (!pathBufferFromEntity.HasComponent(entity) || agent.DestinationSurface.Equals(Entity.Null)) return;
+                    if (!pathBufferFromEntity.HasBuffer(entity) || agent.DestinationSurface.Equals(Entity.Null)) return;
 
                     var pathBuffer = pathBufferFromEntity[entity];
 
                     if (pathBuffer.Length == 0)
                     {
-                        HandleCompletePath(localToWorldFromEntity, entity, rotation, ref agent, surface, translation, physicsWorld, elapsedSeconds, commandBuffer, entityInQueryIndex, settings);
+                        HandleCompletePath(localToWorldFromEntity, entity, ref agent, surface, transform, physicsWorld, elapsedSeconds, commandBuffer, entityInQueryIndex, settings);
                         return;
                     }
 
                     var pathBufferIndex = pathBuffer.Length - 1;
 
-                    if (NavUtil.ApproxEquals(translation.Value, pathBuffer[pathBufferIndex].Value, settings.StoppingDistance)) pathBuffer.RemoveAt(pathBufferIndex);
+                    if (NavUtil.ApproxEquals(transform.Position, pathBuffer[pathBufferIndex].Value, settings.StoppingDistance)) pathBuffer.RemoveAt(pathBufferIndex);
 
                     if (pathBuffer.Length == 0) return;
 
                     pathBufferIndex = pathBuffer.Length - 1;
 
-                    var heading = math.normalizesafe(pathBuffer[pathBufferIndex].Value - translation.Value);
+                    var heading = math.normalizesafe(pathBuffer[pathBufferIndex].Value - transform.Position);
 
                     if (
                         !jumpingFromEntity.HasComponent(entity) &&
@@ -135,32 +133,31 @@ namespace Reese.Nav
                 .ScheduleParallel();
 
             barrier.AddJobHandleForProducer(Dependency);
-            buildPhysicsWorld.AddInputDependencyToComplete(Dependency);
 
-            var jumpBufferFromEntity = GetBufferFromEntity<NavJumpBufferElement>();
+            var jumpBufferFromEntity = GetBufferLookup<NavJumpBufferElement>();
 
             Entities
                 .WithNone<NavProblem>()
                 .WithAny<NavFalling, NavJumping>()
-                .WithAll<LocalToParent>()
+                .WithAll<ParentTransform>()
                 .WithReadOnly(fallingFromEntity)
                 .WithReadOnly(jumpBufferFromEntity)
                 .WithReadOnly(localToWorldFromEntity)
-                .ForEach((Entity entity, int entityInQueryIndex, ref Translation translation, in NavAgent agent, in Parent surface) =>
+                .ForEach((Entity entity, int entityInQueryIndex, ref LocalTransform transform, in NavAgent agent, in Parent surface) =>
                 {
                     if (agent.DestinationSurface.Equals(Entity.Null)) return;
 
                     commandBuffer.AddComponent<NavPlanning>(entityInQueryIndex, entity);
 
-                    if (!jumpBufferFromEntity.HasComponent(entity)) return;
+                    if (!jumpBufferFromEntity.HasBuffer(entity)) return;
                     var jumpBuffer = jumpBufferFromEntity[entity];
                     if (jumpBuffer.Length == 0 && !fallingFromEntity.HasComponent(entity)) return;
 
                     var destinationSurfaceLocalToWorld = localToWorldFromEntity[agent.DestinationSurface];
                     var worldDestination = agent.LocalDestination.ToWorld(destinationSurfaceLocalToWorld);
-                    var velocity = math.distance(translation.Value, worldDestination) / (math.sin(2 * math.radians(agent.JumpDegrees)) / agent.JumpGravity);
+                    var velocity = math.distance(transform.Position, worldDestination) / (math.sin(2 * math.radians(agent.JumpDegrees)) / agent.JumpGravity);
                     var yVelocity = math.sqrt(velocity) * math.sin(math.radians(agent.JumpDegrees));
-                    var waypoint = translation.Value + math.up() * float.NegativeInfinity;
+                    var waypoint = transform.Position + math.up() * float.NegativeInfinity;
 
                     if (!fallingFromEntity.HasComponent(entity))
                     {
@@ -171,10 +168,10 @@ namespace Reese.Nav
                             .ToWorld(destinationSurfaceLocalToWorld)
                             .ToLocal(surfaceLocalToWorld);
 
-                        translation.Value.MoveTowards(waypoint, xVelocity * deltaSeconds);
+                        transform.Position.MoveTowards(waypoint, xVelocity * deltaSeconds);
                     }
 
-                    translation.Value.y += (yVelocity - (elapsedSeconds - agent.JumpSeconds) * agent.JumpGravity) * deltaSeconds * agent.JumpSpeedMultiplierY;
+                    transform.Position.y += (yVelocity - (elapsedSeconds - agent.JumpSeconds) * agent.JumpGravity) * deltaSeconds * agent.JumpSpeedMultiplierY;
 
                     if (elapsedSeconds - agent.JumpSeconds >= settings.JumpSecondsMax)
                     {
@@ -182,7 +179,7 @@ namespace Reese.Nav
                         commandBuffer.AddComponent<NavFalling>(entityInQueryIndex, entity);
                     }
 
-                    if (!NavUtil.ApproxEquals(translation.Value, waypoint, 1)) return;
+                    if (!NavUtil.ApproxEquals(transform.Position, waypoint, 1)) return;
 
                     commandBuffer.AddComponent<NavNeedsSurface>(entityInQueryIndex, entity);
                     commandBuffer.RemoveComponent<NavJumping>(entityInQueryIndex, entity);

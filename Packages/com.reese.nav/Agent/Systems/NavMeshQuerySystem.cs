@@ -16,9 +16,9 @@ namespace Reese.Nav
 
     /// <summary>This system exists because the NavMeshQuery type is inherently evil. It's a NativeContainer, so it can't be placed in another such as a NativeArray. You can't instantiate one within a job using Allocator.Temp because the default NavMeshWorld is needed to create it, which includes unsafe code lacking [NativeDisableUnsafePtrRestriction], meaning that's a no-go inside a job. So, long story short, this system hacks the queries into a public NativeArray via pointers to them. The NavPlanSystem can then access them via the UnsafeUtility. It would be overkill to include a pointer in each NavAgent, since the number of threads is limited at any given time anyway, so the solution here is similar to what you'll find in Reese.Random.RandomSystem, which was inspired by how the PhysicsWorld exposes a NativeSlice of bodies. But here we index each query by native thread, taking thread safety into our own hands.</summary>
     [UpdateInGroup(typeof(InitializationSystemGroup))]
-    unsafe public class NavMeshQuerySystem : ComponentSystem
+    unsafe public partial class NavMeshQuerySystem : SystemBase
     {
-        NavSystem navSystem => World.GetOrCreateSystem<NavSystem>();
+        NavSystem navSystem => World.GetOrCreateSystemManaged<NavSystem>();
 
         /// <summary>An array of structs containing pointers, each referencing its own respective NavMeshQuery.</summary>
         internal NativeArray<NavMeshQueryPointer> PointerArray { get; private set; }

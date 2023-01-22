@@ -12,7 +12,7 @@ namespace Reese.Demo
 
         protected override void OnCreate()
         {
-            navSystem = World.GetOrCreateSystem<NavSystem>();
+            navSystem = World.GetOrCreateSystemManaged<NavSystem>();
 
             navSystem.Settings = new NavSettings
             {

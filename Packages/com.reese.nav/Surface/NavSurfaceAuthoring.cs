@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
 using Unity.Entities;
-using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
 namespace Reese.Nav
 {
     /// <summary>Authors a NavSurface.</summary>
-    public class NavSurfaceAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+    public class NavSurfaceAuthoring : MonoBehaviour
     {
         /// <summary>If true the GameObject's transform will be used and
         /// applied to possible children via CopyTransformFromGameObject.
@@ -30,29 +29,26 @@ namespace Reese.Nav
         /// </summary>
         public NavBasisAuthoring Basis;
 
-        NavSurfaceSystem surfaceSystem => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<NavSurfaceSystem>();
-
-        public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+        class NavSurfaceAuthoringBaker : Baker<NavSurfaceAuthoring>
         {
-            dstManager.AddComponentData<NavSurface>(entity, new NavSurface
+            public override void Bake(NavSurfaceAuthoring authoring)
             {
-                Basis = conversionSystem.GetPrimaryEntity(Basis),
-                TransformInstanceID = gameObject.transform.GetInstanceID()
-            });
+                AddComponent<NavSurface>(new NavSurface
+                {
+                    Basis = GetEntity(authoring.Basis),
+                    TransformInstanceID = authoring.gameObject.transform.GetInstanceID()
+                });
 
-            surfaceSystem.GameObjectMapAdd(gameObject.transform.GetInstanceID(), gameObject);
+                AddComponent<NavSurfaceInitialize>();
 
-            if (HasGameObjectTransform) dstManager.AddComponent(entity, typeof(CopyTransformFromGameObject));
-            else dstManager.AddComponent(entity, typeof(CopyTransformToGameObject));
+                var jumpableBuffer = AddBuffer<NavJumpableBufferElement>();
+                authoring.JumpableSurfaces.ForEach(surface => jumpableBuffer.Add(GetEntity(surface)));
 
-            dstManager.AddComponent(entity, typeof(NavJumpableBufferElement));
-            var jumpableBuffer = dstManager.GetBuffer<NavJumpableBufferElement>(entity);
-            JumpableSurfaces.ForEach(surface => jumpableBuffer.Add(conversionSystem.GetPrimaryEntity(surface)));
-
-            dstManager.AddComponent(entity, typeof(NavJumpableBufferElement));
-
-            dstManager.RemoveComponent(entity, typeof(NonUniformScale));
-            dstManager.RemoveComponent(entity, typeof(MeshRenderer));
-        }
+                AddBuffer<NavJumpableBufferElement>();
+                AddComponentObject(authoring.gameObject);
+                //dstManager.RemoveComponent(entity, typeof(NonUniformScale));
+                //dstManager.RemoveComponent(entity, typeof(MeshRenderer));
+            }
+        } 
     }
 }

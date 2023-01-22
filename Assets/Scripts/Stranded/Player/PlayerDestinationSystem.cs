@@ -14,8 +14,7 @@ namespace Reese.Demo.Stranded
     [UpdateAfter(typeof(TransformSystemGroup))]
     partial class PlayerDestinationSystem : SystemBase
     {
-        PhysicsWorld physicsWorld => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<BuildPhysicsWorld>().PhysicsWorld;
-        NavSettings settings => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<NavSystem>().Settings;
+        NavSettings settings => World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<NavSystem>().Settings;
 
         GameObject agentTransformGO = default;
 
@@ -87,6 +86,8 @@ namespace Reese.Demo.Stranded
                 mouse.position.x.ReadValue(),
                 mouse.position.y.ReadValue()
             );
+
+            var physicsWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().PhysicsWorld;
 
             var pointOnNavigableSurface = NavUtil.GetPointOnNavigableSurface(
                 point,

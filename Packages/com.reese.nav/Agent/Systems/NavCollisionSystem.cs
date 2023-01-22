@@ -12,7 +12,7 @@ namespace Reese.Nav
     /// Projects raycasts in front of any entity which is flocking and walking, and adds a new steering force whenever those raycasts hit an obstacle. It is supposed to 'gently' steer away from obstacles; clipping is still possible.
     /// </summary>
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-    [UpdateBefore(typeof(BuildPhysicsWorld))]
+    [UpdateBefore(typeof(PhysicsSystemGroup))]
     [UpdateAfter(typeof(NavFlockingSystem))]
     public partial class NavCollisionSystem : SystemBase
     {
@@ -20,12 +20,11 @@ namespace Reese.Nav
 
         const float NUM_RAYS = 17; // For casting 17 rays in a (flockingSettings.CollisionCastingAngle * 2) degree angle along an entity's forward direction.
 
-        NavSystem navSystem => World.GetOrCreateSystem<NavSystem>();
-        BuildPhysicsWorld buildPhysicsWorld => World.GetExistingSystem<BuildPhysicsWorld>();
+        NavSystem navSystem => World.GetOrCreateSystemManaged<NavSystem>();
 
         protected override void OnUpdate()
         {
-            var physicsWorld = buildPhysicsWorld.PhysicsWorld;
+            var physicsWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().PhysicsWorld;
             var settings = navSystem.Settings;
             var flockingSettings = navSystem.FlockingSettings;
             var isDebugging = IsDebugging;
@@ -34,9 +33,9 @@ namespace Reese.Nav
                 .WithNone<NavProblem>()
                 .WithNone<NavPlanning, NavJumping, NavFalling>()
                 .WithAll<NavObstacleSteering>()
-                .WithAll<NavWalking, NavFlocking, LocalToParent>()
+                .WithAll<NavWalking, NavFlocking, ParentTransform>()
                 .WithReadOnly(physicsWorld)
-                .ForEach((Entity entity, int entityInQueryIndex, ref Translation translation, ref NavAgent agent, ref NavSteering steering, in LocalToWorld localToWorld, in Rotation rotation, in Parent surface) =>
+                .ForEach((Entity entity, int entityInQueryIndex, ref LocalTransform transform, ref NavAgent agent, ref NavSteering steering, in LocalToWorld localToWorld, in Parent surface) =>
                 {
                     var averageHitDirection = float3.zero;
                     var clostestHitDistance = agent.ObstacleAversionDistance;
@@ -45,7 +44,7 @@ namespace Reese.Nav
                     for (var i = 0; i < NUM_RAYS; ++i)
                     {
                         var rayModifier = quaternion.AxisAngle(localToWorld.Up, i / (NUM_RAYS - 1) * math.radians(flockingSettings.CollisionCastingAngle * 2 - flockingSettings.CollisionCastingAngle));
-                        var rayDirection = math.mul(math.mul(rotation.Value, rayModifier), math.forward());
+                        var rayDirection = math.mul(math.mul(transform.Rotation, rayModifier), math.forward());
 
                         if (isDebugging) Debug.DrawRay(localToWorld.Position, rayDirection * agent.ObstacleAversionDistance, Color.cyan);
 
@@ -82,8 +81,6 @@ namespace Reese.Nav
                 })
                 .WithName("NavClipAvoidanceJob")
                 .ScheduleParallel();
-
-            buildPhysicsWorld.AddInputDependencyToComplete(Dependency);
         }
     }
 }

@@ -9,27 +9,26 @@ using RaycastHit = Unity.Physics.RaycastHit;
 namespace Reese.Nav
 {
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-    [UpdateBefore(typeof(BuildPhysicsWorld))]
+    [UpdateBefore(typeof(PhysicsSystemGroup))]
     [UpdateAfter(typeof(NavMoveSystem))]
     public partial class NavGroundSystem : SystemBase
     {
         public bool IsDebugging = false;
 
-        NavSystem navSystem => World.GetOrCreateSystem<NavSystem>();
-        BuildPhysicsWorld buildPhysicsWorld => World.GetExistingSystem<BuildPhysicsWorld>();
+        NavSystem navSystem => World.GetOrCreateSystemManaged<NavSystem>();
 
         protected override void OnUpdate()
         {
-            var physicsWorld = buildPhysicsWorld.PhysicsWorld;
+            var physicsWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().PhysicsWorld;
             var settings = navSystem.Settings;
             var isDebugging = IsDebugging;
 
             Entities
                .WithNone<NavProblem>()
                .WithNone<NavPlanning, NavJumping, NavFalling>()
-               .WithAll<NavWalking, LocalToParent, NavTerrainCapable>()
+               .WithAll<NavWalking, ParentTransform, NavTerrainCapable>()
                .WithReadOnly(physicsWorld)
-               .ForEach((Entity entity, int entityInQueryIndex, ref Translation translation, ref NavAgent agent, in LocalToWorld localToWorld, in Parent surface) =>
+               .ForEach((Entity entity, int entityInQueryIndex, ref LocalTransform transform, ref NavAgent agent, in LocalToWorld localToWorld, in Parent surface) =>
                {
                    var rayInput = new RaycastInput
                    {
@@ -54,15 +53,13 @@ namespace Reese.Nav
 
                        agent.SurfacePointNormal = hit.SurfaceNormal;
 
-                       var currentPosition = translation.Value;
+                       var currentPosition = transform.Position;
                        currentPosition.y = hit.Position.y + agent.Offset.y;
-                       translation.Value = currentPosition;
+                       transform.Position = currentPosition;
                    }
                })
                .WithName("NavGroundingJob")
                .ScheduleParallel();
-
-            buildPhysicsWorld.AddInputDependencyToComplete(Dependency);
         }
     }
 }

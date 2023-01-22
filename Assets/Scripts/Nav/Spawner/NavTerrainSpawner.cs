@@ -93,14 +93,10 @@ namespace Reese.Demo
                     Offset = new float3(0, 1, 0)
                 });
 
-                entityManager.AddComponentData(entities[i], new Translation
-                {
-                    Value = SpawnOffset
-                });
-
+                entityManager.AddComponentData(entities[i], LocalTransform.FromPosition(SpawnOffset));
                 entityManager.AddComponent<LocalToWorld>(entities[i]);
                 entityManager.AddComponent<Parent>(entities[i]);
-                entityManager.AddComponent<LocalToParent>(entities[i]);
+                entityManager.AddComponent<ParentTransform>(entities[i]);
                 entityManager.AddComponent<NavNeedsSurface>(entities[i]);
                 entityManager.AddComponent<NavTerrainCapable>(entities[i]);
             }

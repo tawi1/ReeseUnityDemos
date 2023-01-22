@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Reese.Nav
 {
     /// <summary>Authors a NavBasis.</summary>
-    public class NavBasisAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+    public class NavBasisAuthoring : MonoBehaviour
     {
         /// <summary>If true the GameObject's transform will be used and
         /// applied to child surfaces or bases via
@@ -19,18 +19,21 @@ namespace Reese.Nav
         /// the origin.</summary>
         public NavBasisAuthoring ParentBasis;
 
-        public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+        class NavBasisAuthoringBaker : Baker<NavBasisAuthoring>
         {
-            dstManager.AddComponentData(entity, new NavBasis
+            public override void Bake(NavBasisAuthoring authoring)
             {
-                ParentBasis = conversionSystem.GetPrimaryEntity(ParentBasis)
-            });
+                AddComponent( new NavBasis
+                {
+                    ParentBasis = GetEntity(authoring.ParentBasis)
+                });
 
-            if (HasGameObjectTransform) dstManager.AddComponent(entity, typeof(CopyTransformFromGameObject));
-            else dstManager.AddComponent(entity, typeof(CopyTransformToGameObject));
+                //if (HasGameObjectTransform) dstManager.AddComponent(entity, typeof(CopyTransformFromGameObject));
+                //else dstManager.AddComponent(entity, typeof(CopyTransformToGameObject));
 
-            dstManager.RemoveComponent(entity, typeof(NonUniformScale));
-            dstManager.RemoveComponent(entity, typeof(MeshRenderer));
-        }
+                //dstManager.RemoveComponent(entity, typeof(NonUniformScale));
+                //dstManager.RemoveComponent(entity, typeof(MeshRenderer));
+            }
+        }   
     }
 }

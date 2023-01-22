@@ -6,21 +6,22 @@ using UnityEngine;
 namespace Reese.Spatial
 {
     /// <summary>Authors a SpatialActivator.</summary>
-    public class SpatialActivatorAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+    public class SpatialActivatorAuthoring : MonoBehaviour
     {
         /// <summary>This activator will activate any overlapping triggers belonging to the same tag.</summary>
         [SerializeField]
         List<string> tags = new List<string>();
 
-        public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+        class SpatialActivatorAuthoringBaker : Baker<SpatialActivatorAuthoring>
         {
-            dstManager.AddComponent<SpatialActivator>(entity);
+            public override void Bake(SpatialActivatorAuthoring authoring)
+            {
+                AddComponent<SpatialActivator>();
 
-            dstManager.AddComponent(entity, typeof(SpatialTag));
+                var tagBuffer = AddBuffer<SpatialTag>();
 
-            var tagBuffer = dstManager.GetBuffer<SpatialTag>(entity);
-
-            tags.Distinct().ToList().ForEach(group => tagBuffer.Add(group)); 
+                authoring.tags.Distinct().ToList().ForEach(group => tagBuffer.Add(group));
+            }
         }
     }
 }

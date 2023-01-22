@@ -7,14 +7,14 @@ namespace Reese.Path
 {
     public partial class PathFollowSystem : SystemBase
     {
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<EndSimulationEntityCommandBufferSystem>();
 
         protected override void OnUpdate()
         {
             var commandBuffer = barrier.CreateCommandBuffer().AsParallelWriter();
 
-            var localToWorldFromEntity = GetComponentDataFromEntity<LocalToWorld>(true);
-            var destinationFromEntity = GetComponentDataFromEntity<PathDestination>(true);
+            var localToWorldFromEntity = GetComponentLookup<LocalToWorld>(true);
+            var destinationFromEntity = GetComponentLookup<PathDestination>(true);
 
             Entities
                 .WithAll<PathAgent>()

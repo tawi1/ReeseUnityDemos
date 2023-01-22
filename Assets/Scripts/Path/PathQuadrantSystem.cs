@@ -17,12 +17,12 @@ namespace Reese.Demo
     [UpdateAfter(typeof(Path.PathDestinationSystem))]
     public partial class PathQuadrantSystem : SystemBase
     {
-        public static NativeParallelMultiHashMap<int, QuadrantData> QuadrantHashMap;
+        public static NativeMultiHashMap<int, QuadrantData> QuadrantHashMap;
 
-        PathFlockingSettingsSystem flockingSettingsSystem => World.GetOrCreateSystem<PathFlockingSettingsSystem>();
+        PathFlockingSettingsSystem flockingSettingsSystem => World.GetOrCreateSystemManaged<PathFlockingSettingsSystem>();
 
         protected override void OnCreate()
-            => QuadrantHashMap = new NativeParallelMultiHashMap<int, QuadrantData>(0, Allocator.Persistent);
+            => QuadrantHashMap = new NativeMultiHashMap<int, QuadrantData>(0, Allocator.Persistent);
 
         protected override void OnDestroy()
             => QuadrantHashMap.Dispose();
@@ -59,7 +59,7 @@ namespace Reese.Demo
             => (int)(math.floor(position.x / flockingSettings.QuadrantCellSize) + flockingSettings.QuadrantZMultiplier * math.floor(position.z / flockingSettings.QuadrantCellSize));
 
         public static void SearchQuadrantNeighbors(
-            in NativeParallelMultiHashMap<int, QuadrantData> quadrantHashMap,
+            in NativeMultiHashMap<int, QuadrantData> quadrantHashMap,
             in int key,
             in Entity currentEntity,
             in PathFlocking flocking,
@@ -93,7 +93,7 @@ namespace Reese.Demo
         }
 
         static void SearchQuadrantNeighbor(
-            in NativeParallelMultiHashMap<int, QuadrantData> quadrantHashMap,
+            in NativeMultiHashMap<int, QuadrantData> quadrantHashMap,
             in int key,
             in Entity entity,
             in PathFlocking flocking,

@@ -6,13 +6,13 @@ namespace Reese.Nav
 {
     public partial class NavFollowSystem : SystemBase
     {
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<EndSimulationEntityCommandBufferSystem>();
 
         protected override void OnUpdate()
         {
             var commandBuffer = barrier.CreateCommandBuffer().AsParallelWriter();
-            var localToWorldFromEntity = GetComponentDataFromEntity<LocalToWorld>(true);
-            var needsDestinationFromEntity = GetComponentDataFromEntity<NavDestination>(true);
+            var localToWorldFromEntity = GetComponentLookup<LocalToWorld>(true);
+            var needsDestinationFromEntity = GetComponentLookup<NavDestination>(true);
 
             Entities
                 .WithAll<NavAgent, LocalToWorld>()

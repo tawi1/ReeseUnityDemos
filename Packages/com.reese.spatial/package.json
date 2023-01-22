@@ -2,14 +2,14 @@
 	"name": "com.reese.spatial",
 	"documentationUrl": "https://github.com/reeseschultz/ReeseUnityDemos/blob/master/Packages/com.reese.spatial/README.md#reeses-dots-spatial-events",
 	"changelogUrl": "https://github.com/reeseschultz/ReeseUnityDemos/commits/master/Packages/com.reese.spatial",
-	"version": "0.4.5",
+	"version": "0.4.6",
 	"displayName": "Reese's DOTS Spatial Events",
 	"description": "Reactive entry, overlap and exit events in Burst-capable jobs.",
 	"dependencies": {
-		"com.unity.entities": "0.51.0-preview.32",
-		"com.unity.physics": "0.51.0-preview.32"
+		"com.unity.entities": "1.0.0-pre.15",
+		"com.unity.physics": "1.0.0-pre.15"
 	},
-	"unity": "2021.3",
+	"unity": "2022.2",
 	"unityRelease": "4f1",
 	"author": {
 		"name": "Reese Schultz",

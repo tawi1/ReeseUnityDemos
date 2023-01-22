@@ -3,13 +3,12 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Physics.Authoring;
-using Unity.Rendering;
 using UnityEngine;
 
 namespace Reese.Nav
 {
     /// <summary>Authors a terrain collider.</summary>
-    public class NavTerrainColliderAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+    public class NavTerrainColliderAuthoring : MonoBehaviour
     {
         [SerializeField]
         PhysicsCategoryTags belongsTo = default;
@@ -20,43 +19,43 @@ namespace Reese.Nav
         [SerializeField]
         int groupIndex = default;
 
-        public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-        {
-            var terrain = GetComponent<Terrain>();
+        //public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+        //{
+        //    var terrain = GetComponent<Terrain>();
 
-            if (terrain == null)
-            {
-                Debug.LogError("No terrain found!");
-                return;
-            }
+        //    if (terrain == null)
+        //    {
+        //        Debug.LogError("No terrain found!");
+        //        return;
+        //    }
 
-            var collisionFilter = new CollisionFilter
-            {
-                BelongsTo = belongsTo.Value,
-                CollidesWith = collidesWith.Value,
-                GroupIndex = groupIndex
-            };
+        //    var collisionFilter = new CollisionFilter
+        //    {
+        //        BelongsTo = belongsTo.Value,
+        //        CollidesWith = collidesWith.Value,
+        //        GroupIndex = groupIndex
+        //    };
 
-            dstManager.AddComponent<PhysicsWorldIndex>(entity);
+        //    dstManager.AddComponent<PhysicsWorldIndex>(entity);
 
-            dstManager.AddComponentData(entity, CreateTerrainCollider(terrain.terrainData, collisionFilter));
+        //    dstManager.AddComponentData(entity, CreateTerrainCollider(terrain.terrainData, collisionFilter));
 
-            var renderer = GetComponent<Renderer>();
+        //    var renderer = GetComponent<Renderer>();
 
-            if (renderer == null)
-            {
-                Debug.LogError("No renderer found! Please attach a mesh renderer to the terrain.");
-                return;
-            }
+        //    if (renderer == null)
+        //    {
+        //        Debug.LogError("No renderer found! Please attach a mesh renderer to the terrain.");
+        //        return;
+        //    }
 
-            var bounds = new AABB
-            {
-                Center = renderer.bounds.center,
-                Extents = renderer.bounds.extents
-            };
+        //    var bounds = new AABB
+        //    {
+        //        Center = renderer.bounds.center,
+        //        Extents = renderer.bounds.extents
+        //    };
 
-            dstManager.AddComponentData(entity, new RenderBounds { Value = bounds });
-        }
+        //    dstManager.AddComponentData(entity, new RenderBounds { Value = bounds });
+        //}
 
         // Adapted from https://forum.unity.com/threads/using-unity-terrain-with-dots-workflow.755105/#post-5061125 by daschatten.
         public static PhysicsCollider CreateTerrainCollider(TerrainData terrainData, CollisionFilter filter)

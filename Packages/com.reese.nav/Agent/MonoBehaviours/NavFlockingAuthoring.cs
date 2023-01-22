@@ -4,9 +4,14 @@ using UnityEngine;
 namespace Reese.Nav
 {
     /// <summary>Authors a NavFlocking.</summary>
-    public class NavFlockingAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+    public class NavFlockingAuthoring : MonoBehaviour
     {
-        public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-            => dstManager.AddComponent<NavFlocking>(entity);
+        class NavFlockingAuthoringBaker : Baker<NavFlockingAuthoring>
+        {
+            public override void Bake(NavFlockingAuthoring authoring)
+            {
+                AddComponent<NavFlocking>();
+            }
+        }
     }
 }

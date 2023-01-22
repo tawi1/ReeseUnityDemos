@@ -7,12 +7,12 @@ namespace Reese.Demo
 {
     partial class NavFallSystem : SystemBase
     {
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<EndSimulationEntityCommandBufferSystem>();
 
         protected override void OnUpdate()
         {
             var commandBuffer = barrier.CreateCommandBuffer().AsParallelWriter();
-            var elapsedSeconds = (float)Time.ElapsedTime;
+            var elapsedSeconds = (float)SystemAPI.Time.ElapsedTime;
             var fallSecondsMax = 5;
 
             Entities

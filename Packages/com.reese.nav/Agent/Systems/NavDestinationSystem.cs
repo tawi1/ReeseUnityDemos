@@ -13,23 +13,19 @@ namespace Reese.Nav
 {
     /// <summary>Manages destinations for agents, rate-limiting their path searches.</summary>
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-    [UpdateBefore(typeof(BuildPhysicsWorld))]
+    [UpdateBefore(typeof(PhysicsSystemGroup))]
     [UpdateAfter(typeof(NavSurfaceSystem))]
     public partial class NavDestinationSystem : SystemBase
     {
-        NavSystem navSystem => World.GetOrCreateSystem<NavSystem>();
-        BuildPhysicsWorld buildPhysicsWorld => World.GetOrCreateSystem<BuildPhysicsWorld>();
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
-
-        protected override void OnStartRunning()
-            => this.RegisterPhysicsRuntimeSystemReadWrite();
+        NavSystem navSystem => World.GetOrCreateSystemManaged<NavSystem>();
+        EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<EndSimulationEntityCommandBufferSystem>();
 
         protected override void OnUpdate()
         {
             var commandBuffer = barrier.CreateCommandBuffer().AsParallelWriter();
-            var elapsedSeconds = (float)Time.ElapsedTime;
-            var localToWorldFromEntity = GetComponentDataFromEntity<LocalToWorld>(true);
-            var physicsWorld = buildPhysicsWorld.PhysicsWorld;
+            var elapsedSeconds = (float)SystemAPI.Time.ElapsedTime;
+            var localToWorldFromEntity = GetComponentLookup<LocalToWorld>(true);
+            var physicsWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().PhysicsWorld;
             var settings = navSystem.Settings;
 
             Entities
@@ -83,11 +79,8 @@ namespace Reese.Nav
                                 Value = hit.Entity
                             });
 
-                            commandBuffer.SetComponent<Translation>(entityInQueryIndex, entity, new Translation
-                            {
-                                Value = localDestination
-                            });
-
+                            commandBuffer.SetComponent<LocalTransform>(entityInQueryIndex, entity, LocalTransform.FromPosition(localDestination));
+                   
                             commandBuffer.RemoveComponent<NavDestination>(entityInQueryIndex, entity);
 
                             return;
@@ -104,7 +97,6 @@ namespace Reese.Nav
                 .ScheduleParallel();
 
             barrier.AddJobHandleForProducer(Dependency);
-            buildPhysicsWorld.AddInputDependencyToComplete(Dependency);
         }
     }
 }

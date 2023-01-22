@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Reese.Spatial
 {
     /// <summary>Authors a SpatialTrigger.</summary>
-    public class SpatialTriggerAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+    public class SpatialTriggerAuthoring : MonoBehaviour
     {
         /// <summary>The layer this object belongs to. Valid layers range from 8 to 30, inclusive. All other layers are invalid, and will always result in layer 8, since they are used by Unity internally. See https://docs.unity3d.com/Manual/class-TagManager.html and https://docs.unity3d.com/Manual/Layers.html for more information.</summary>
         [SerializeField]
@@ -29,23 +29,24 @@ namespace Reese.Spatial
         [SerializeField]
         List<string> tags = new List<string>();
 
-        public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+        class SpatialTriggerAuthoringBaker : Baker<SpatialTriggerAuthoring>
         {
-            dstManager.AddComponentData(entity, new SpatialTrigger
+            public override void Bake(SpatialTriggerAuthoring authoring)
             {
-                Filter = useDefaultCollisionFilter ? CollisionFilter.Default : new CollisionFilter
+                AddComponent(new SpatialTrigger
                 {
-                    BelongsTo = SpatialUtil.ToBitMask(belongsToLayer),
-                    CollidesWith = SpatialUtil.ToBitMask(collidesWithLayer),
-                    GroupIndex = groupIndex
-                }
-            });
+                    Filter = authoring.useDefaultCollisionFilter ? CollisionFilter.Default : new CollisionFilter
+                    {
+                        BelongsTo = SpatialUtil.ToBitMask(authoring.belongsToLayer),
+                        CollidesWith = SpatialUtil.ToBitMask(authoring.collidesWithLayer),
+                        GroupIndex = authoring.groupIndex
+                    }
+                });
 
-            dstManager.AddComponent(entity, typeof(SpatialTag));
+                var tagBuffer = AddBuffer<SpatialTag>();
 
-            var tagBuffer = dstManager.GetBuffer<SpatialTag>(entity);
-
-            tags.Distinct().ToList().ForEach(tag => tagBuffer.Add(tag));
-        }
+                authoring.tags.Distinct().ToList().ForEach(tag => tagBuffer.Add(tag));
+            }
+        }    
     }
 }

@@ -6,27 +6,22 @@ using Unity.Physics;
 using Unity.Physics.Systems;
 using Collider = Unity.Physics.Collider;
 using SphereCollider = Unity.Physics.SphereCollider;
-using BuildPhysicsWorld = Unity.Physics.Systems.BuildPhysicsWorld;
 
 namespace Reese.Utility
 {
-    [UpdateAfter(typeof(TransformSystemGroup))]
+    //[UpdateAfter(typeof(TransformSystemGroup))]
+    [UpdateBefore(typeof(PhysicsSystemGroup))]
     public partial class StickySystem : SystemBase
     {
-        BuildPhysicsWorld buildPhysicsWorld => World.GetOrCreateSystem<BuildPhysicsWorld>();
-
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
-
-        protected override void OnStartRunning()
-            => this.RegisterPhysicsRuntimeSystemReadOnly();
+        EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<EndSimulationEntityCommandBufferSystem>();
 
         protected override void OnUpdate()
         {
             var commandBuffer = barrier.CreateCommandBuffer().AsParallelWriter();
 
-            var physicsWorld = buildPhysicsWorld.PhysicsWorld;
+            var physicsWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().PhysicsWorld;
 
-            var localToWorldFromEntity = GetComponentDataFromEntity<LocalToWorld>(true);
+            var localToWorldFromEntity = GetComponentLookup<LocalToWorld>(true);
 
             Entities
                 .WithAll<LocalToWorld>()

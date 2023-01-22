@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Reese.Path
 {
     /// <summary>Authors an agent.</summary>
-    public class PathAgentAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+    public class PathAgentAuthoring : MonoBehaviour
     {
         /// <summary>The agent's type.</summary>
         [SerializeField]
@@ -14,13 +14,16 @@ namespace Reese.Path
         [SerializeField]
         Vector3 offset = default;
 
-        public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+        class PathAgentAuthoringBaker : Baker<PathAgentAuthoring>
         {
-            dstManager.AddComponentData(entity, new PathAgent
+            public override void Bake(PathAgentAuthoring authoring)
             {
-                TypeID = PathUtil.GetAgentType(type),
-                Offset = offset
-            });
+                AddComponent(new PathAgent
+                {
+                    TypeID = PathUtil.GetAgentType(authoring.type),
+                    Offset = authoring.offset
+                });
+            }
         }
     }
 }

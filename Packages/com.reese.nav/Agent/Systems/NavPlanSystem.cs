@@ -13,23 +13,23 @@ namespace Reese.Nav
     /// <summary>Plans paths and "jumpable" positions using UnityEngine.Experimental.AI. Each entity gets its own NavMeshQuery by thread index. This depends on the third-party PathUtils.</summary>
     unsafe public partial class NavPlanSystem : SystemBase
     {
-        NavSystem navSystem => World.GetOrCreateSystem<NavSystem>();
+        NavSystem navSystem => World.GetOrCreateSystemManaged<NavSystem>();
 
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<EndSimulationEntityCommandBufferSystem>();
 
         protected override void OnUpdate()
         {
             var commandBuffer = barrier.CreateCommandBuffer().AsParallelWriter();
-            var localToWorldFromEntity = GetComponentDataFromEntity<LocalToWorld>(true);
-            var jumpingFromEntity = GetComponentDataFromEntity<NavJumping>(true);
-            var pathBufferFromEntity = GetBufferFromEntity<NavPathBufferElement>();
-            var jumpBufferFromEntity = GetBufferFromEntity<NavJumpBufferElement>();
-            var navMeshQueryPointerArray = World.GetExistingSystem<NavMeshQuerySystem>().PointerArray;
+            var localToWorldFromEntity = GetComponentLookup<LocalToWorld>(true);
+            var jumpingFromEntity = GetComponentLookup<NavJumping>(true);
+            var pathBufferFromEntity = GetBufferLookup<NavPathBufferElement>();
+            var jumpBufferFromEntity = GetBufferLookup<NavJumpBufferElement>();
+            var navMeshQueryPointerArray = World.GetExistingSystemManaged<NavMeshQuerySystem>().PointerArray;
             var settings = navSystem.Settings;
 
             Entities
                 .WithNone<NavProblem>()
-                .WithAll<NavPlanning, LocalToParent>()
+                .WithAll<NavPlanning, ParentTransform>()
                 .WithReadOnly(localToWorldFromEntity)
                 .WithReadOnly(jumpingFromEntity)
                 .WithNativeDisableParallelForRestriction(pathBufferFromEntity)

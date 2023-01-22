@@ -9,13 +9,13 @@ namespace Reese.Path
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
     public partial class PathDestinationSystem : SystemBase
     {
-        PathSystem pathSystem => World.GetOrCreateSystem<PathSystem>();
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        PathSystem pathSystem => World.GetOrCreateSystemManaged<PathSystem>();
+        EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<EndSimulationEntityCommandBufferSystem>();
 
         protected override void OnUpdate()
         {
             var commandBuffer = barrier.CreateCommandBuffer().AsParallelWriter();
-            var elapsedSeconds = (float)Time.ElapsedTime;
+            var elapsedSeconds = (float)SystemAPI.Time.ElapsedTime;
             var settings = pathSystem.Settings;
 
             Entities

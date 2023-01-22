@@ -53,9 +53,7 @@ namespace Reese.Path
                 )
             });
 
-            if (!entityManager.HasComponent<Rotation>(Entity)) entityManager.AddComponent<Rotation>(Entity);
-
-            if (!entityManager.HasComponent<Translation>(Entity)) entityManager.AddComponent<Translation>(Entity);
+            if (!entityManager.HasComponent<LocalTransform>(Entity)) entityManager.AddComponent<LocalTransform>(Entity);
         }
 
         void Start()
@@ -86,8 +84,7 @@ namespace Reese.Path
             if (
                 Entity.Equals(Entity.Null) ||
                 !entityManager.HasComponent<PathAgent>(Entity) ||
-                !entityManager.HasComponent<Translation>(Entity) ||
-                !entityManager.HasComponent<Rotation>(Entity)
+                !entityManager.HasComponent<LocalTransform>(Entity)
             ) return;
 
             var agent = entityManager.GetComponentData<PathAgent>(Entity);
@@ -109,8 +106,9 @@ namespace Reese.Path
                 InitializeEntityTransform(); // Reinitialize in case GameObject transform changes in-between pathing.
             }
 
-            gameObject.transform.position = entityManager.GetComponentData<Translation>(Entity).Value;
-            gameObject.transform.rotation = entityManager.GetComponentData<Rotation>(Entity).Value;
+            var localTransform = entityManager.GetComponentData<LocalTransform>(Entity);
+            gameObject.transform.position = localTransform.Position;
+            gameObject.transform.rotation = localTransform.Rotation;
 
             if (FollowTarget != null && FollowTarget.GetComponent<PathAgentHybrid>() != null)
             {

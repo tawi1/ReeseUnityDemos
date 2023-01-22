@@ -2,12 +2,11 @@ using Unity.Entities;
 using Unity.Physics;
 using Unity.Transforms;
 using UnityEngine;
-using static Unity.Entities.ConvertToEntity;
 
 namespace Reese.Utility
 {
     /// <summary>Authors a sticky.</summary>
-    public class StickyAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+    public class StickyAuthoring : MonoBehaviour
     {
         /// <summary>World direction unit vector in which the object should attempt to stick to another.</summary>
         [SerializeField]
@@ -37,33 +36,36 @@ namespace Reese.Utility
         [SerializeField]
         int stickAttempts = 10;
 
-        public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+        class StickyAuthoringBaker : Baker<StickyAuthoring>
         {
-            var filter = new CollisionFilter
+            public override void Bake(StickyAuthoring authoring)
             {
-                BelongsTo = Util.ToBitMask(belongsToLayer),
-                CollidesWith = Util.ToBitMask(collidesWithLayer),
-                GroupIndex = groupIndex
-            };
+                var filter = new CollisionFilter
+                {
+                    BelongsTo = Util.ToBitMask(authoring.belongsToLayer),
+                    CollidesWith = Util.ToBitMask(authoring.collidesWithLayer),
+                    GroupIndex = authoring.groupIndex
+                };
 
-            if (useDefaultCollisionFilter) filter = CollisionFilter.Default;
+                if (authoring.useDefaultCollisionFilter) filter = CollisionFilter.Default;
 
-            dstManager.AddComponentData(entity, new Sticky
-            {
-                Filter = filter,
-                WorldDirection = worldDirection,
-                Radius = radius,
-                StickAttempts = stickAttempts
-            });
+                AddComponent(new Sticky
+                {
+                    Filter = filter,
+                    WorldDirection = authoring.worldDirection,
+                    Radius = authoring.radius,
+                    StickAttempts = authoring.stickAttempts
+                });
 
-            var convertToEntity = GetComponent<ConvertToEntity>();
+                //var convertToEntity = GetComponent<ConvertToEntity>();
 
-            if (
-                convertToEntity != null &&
-                convertToEntity.ConversionMode.Equals(Mode.ConvertAndInjectGameObject)
-            ) dstManager.AddComponent(entity, typeof(CopyTransformToGameObject));
+                //if (
+                //    convertToEntity != null &&
+                //    convertToEntity.ConversionMode.Equals(Mode.ConvertAndInjectGameObject)
+                //) AddComponent(typeof(CopyTransformToGameObject));
 
-            dstManager.AddComponent<FixTranslation>(entity);
+                AddComponent<FixTranslation>();
+            }
         }
     }
 }

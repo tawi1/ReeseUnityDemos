@@ -12,8 +12,8 @@ namespace Reese.EntityPrefabGroups
             ).GetSingletonEntity();
 
         /// <summary>Gets the singleton data of the specified component type.</summary>
-        public static T GetSingleton<T>(this EntityManager entityManager) where T : struct, IComponentData
-            => entityManager.CreateEntityQuery(typeof(T)).GetSingleton<T>();
+        //public static T GetSingleton<T>(this EntityManager entityManager) where T : struct, IComponentData
+        //    => entityManager.CreateEntityQuery(typeof(T)).GetSingleton<T>();
 
         /// <summary>Gets a buffer of prefabs with a group that has the specified singleton component type.</summary>
         public static DynamicBuffer<PrefabGroup> GetPrefabs<T>(this EntityManager entityManager) where T : struct, IComponentData

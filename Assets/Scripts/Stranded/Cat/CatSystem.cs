@@ -12,7 +12,7 @@ namespace Reese.Demo.Stranded
     [UpdateAfter(typeof(SpatialStartSystem)), UpdateBefore(typeof(SpatialEndSystem))]
     partial class CatSystem : SystemBase
     {
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<EndSimulationEntityCommandBufferSystem>();
 
         GameObject go = default;
 
@@ -28,7 +28,7 @@ namespace Reese.Demo.Stranded
 
             var commandBuffer = barrier.CreateCommandBuffer();
 
-            var elapsedSeconds = (float)Time.ElapsedTime;
+            var elapsedSeconds = (float)SystemAPI.Time.ElapsedTime;
 
             Entities
                 .WithAll<Cat, SpatialTrigger, PhysicsCollider>()
@@ -44,7 +44,7 @@ namespace Reese.Demo.Stranded
                 .WithAll<Cat, SpatialTrigger, PhysicsCollider>()
                 .WithChangeFilter<SpatialEntry>()
                 .WithNone<Hopping>()
-                .ForEach((Entity entity, in DynamicBuffer<SpatialEntry> entryBuffer, in Translation translation) =>
+                .ForEach((Entity entity, in DynamicBuffer<SpatialEntry> entryBuffer, in LocalTransform transform) =>
                 {
                     var controller = go.GetComponent<CatSoundController>();
 
@@ -54,7 +54,7 @@ namespace Reese.Demo.Stranded
 
                         commandBuffer.AddComponent(entity, new Hopping
                         {
-                            OriginalPosition = translation.Value,
+                            OriginalPosition = transform.Position,
                             Height = 10,
                             StartSeconds = elapsedSeconds,
                             Duration = 1
@@ -83,19 +83,19 @@ namespace Reese.Demo.Stranded
             var parallelCommandBuffer = commandBuffer.AsParallelWriter();
 
             Entities
-                .ForEach((Entity entity, int entityInQueryIndex, ref Translation translation, in Hopping hopping) =>
+                .ForEach((Entity entity, int entityInQueryIndex, ref LocalTransform transform, in Hopping hopping) =>
                 {
-                    var position = translation.Value;
+                    var position = transform.Position;
 
                     position.y = hopping.Height * math.sin(
                         math.PI * ((elapsedSeconds - hopping.StartSeconds) / hopping.Duration)
                     );
 
-                    translation.Value = position;
+                    transform.Position = position;
 
                     if (elapsedSeconds - hopping.StartSeconds < hopping.Duration) return;
 
-                    translation.Value = hopping.OriginalPosition;
+                    transform.Position = hopping.OriginalPosition;
                     parallelCommandBuffer.RemoveComponent<Hopping>(entityInQueryIndex, entity);
                 })
                 .WithName("CatHopJob")
