@@ -7,6 +7,7 @@ namespace Reese.Path
 {
     /// <summary>Manages destinations for agents.</summary>
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+	[RequireMatchingQueriesForUpdate]
     public partial class PathDestinationSystem : SystemBase
     {
         PathSystem pathSystem => World.GetOrCreateSystemManaged<PathSystem>();

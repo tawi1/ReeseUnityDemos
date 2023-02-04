@@ -5,6 +5,7 @@ using Unity.Transforms;
 
 namespace Reese.Path
 {
+	[RequireMatchingQueriesForUpdate]
     public partial class PathFollowSystem : SystemBase
     {
         EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<EndSimulationEntityCommandBufferSystem>();
