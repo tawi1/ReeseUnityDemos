@@ -20,20 +20,20 @@ namespace Reese.Path
             {
                 var entity = GetEntity(authoring.gameObject, TransformUsageFlags.Dynamic);
 
-                AddComponent(entity, new PathAgent
-                {
-                    TypeID = PathUtil.GetAgentType(authoring.type),
-                    Offset = authoring.offset
-                });
-
-                AddComponents(this, entity);
+                AddComponents(this, entity, authoring.type, authoring.offset);
             }
         }
 
-        public static void AddComponents(IBaker baker, Entity entity)
+        public static void AddComponents(IBaker baker, Entity entity, string type, Vector3 offset)
         {
             baker.AddComponent<PathDestination>(entity);
             baker.AddComponent<PathPlanning>(entity);
+
+            baker.AddComponent(entity, new PathAgent
+            {
+                TypeID = PathUtil.GetAgentType(type),
+                Offset = offset
+            });
 
             baker.SetComponentEnabled<PathDestination>(entity, false);
             baker.SetComponentEnabled<PathPlanning>(entity, false);
@@ -41,8 +41,19 @@ namespace Reese.Path
 
         public static void AddComponents(ref EntityCommandBuffer commandBuffer, Entity entity)
         {
+            AddComponents(ref commandBuffer, entity, PathConstants.HUMANOID, Vector3.zero);
+        }
+
+        public static void AddComponents(ref EntityCommandBuffer commandBuffer, Entity entity, string type, Vector3 offset)
+        {
             commandBuffer.AddComponent<PathDestination>(entity);
             commandBuffer.AddComponent<PathPlanning>(entity);
+
+            commandBuffer.AddComponent(entity, new PathAgent
+            {
+                TypeID = PathUtil.GetAgentType(type),
+                Offset = offset
+            });
 
             commandBuffer.SetComponentEnabled<PathDestination>(entity, false);
             commandBuffer.SetComponentEnabled<PathPlanning>(entity, false);
