@@ -23,7 +23,7 @@ namespace Reese.Nav
             var isDebugging = IsDebugging;
 
             Entities
-                .WithAll<NavFlocking, NavWalking, ParentTransform>()
+                .WithAll<NavFlocking, NavWalking>()
                 .WithNone<NavProblem, NavFalling, NavJumping>()
                 .WithReadOnly(quadrantHashMap)
                 .ForEach((Entity entity, ref NavSteering steering, in NavAgent agent, in LocalTransform transform, in LocalToWorld localToWorld) =>

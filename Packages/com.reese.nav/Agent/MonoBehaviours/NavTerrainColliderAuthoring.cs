@@ -10,11 +10,11 @@ namespace Reese.Nav
     /// <summary>Authors a terrain collider.</summary>
     public class NavTerrainColliderAuthoring : MonoBehaviour
     {
-        [SerializeField]
-        PhysicsCategoryTags belongsTo = default;
+        //[SerializeField]
+        //PhysicsCategoryTags belongsTo = default;
 
-        [SerializeField]
-        PhysicsCategoryTags collidesWith = default;
+        //[SerializeField]
+        //PhysicsCategoryTags collidesWith = default;
 
         [SerializeField]
         int groupIndex = default;

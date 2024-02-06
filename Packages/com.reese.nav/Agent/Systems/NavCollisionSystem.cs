@@ -33,7 +33,7 @@ namespace Reese.Nav
                 .WithNone<NavProblem>()
                 .WithNone<NavPlanning, NavJumping, NavFalling>()
                 .WithAll<NavObstacleSteering>()
-                .WithAll<NavWalking, NavFlocking, ParentTransform>()
+                .WithAll<NavWalking, NavFlocking>()
                 .WithReadOnly(physicsWorld)
                 .ForEach((Entity entity, int entityInQueryIndex, ref LocalTransform transform, ref NavAgent agent, ref NavSteering steering, in LocalToWorld localToWorld, in Parent surface) =>
                 {

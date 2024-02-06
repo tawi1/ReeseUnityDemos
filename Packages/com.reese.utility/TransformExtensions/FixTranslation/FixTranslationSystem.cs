@@ -43,21 +43,21 @@ namespace Reese.Utility
 
             // Corrects transforms by re-parenting entities with missing LocalToParent components:
 
-            Entities
-                .WithNone<ParentTransform>()
-                .ForEach((Entity entity, int entityInQueryIndex, in Parent parent) =>
-                {
-                    commandBuffer.RemoveComponent<Parent>(entityInQueryIndex, entity);
+            //Entities
+            //    .WithNone<ParentTransform>()
+            //    .ForEach((Entity entity, int entityInQueryIndex, in Parent parent) =>
+            //    {
+            //        commandBuffer.RemoveComponent<Parent>(entityInQueryIndex, entity);
 
-                    commandBuffer.AddComponent(entityInQueryIndex, entity, new Parent
-                    {
-                        Value = parent.Value
-                    });
+            //        commandBuffer.AddComponent(entityInQueryIndex, entity, new Parent
+            //        {
+            //            Value = parent.Value
+            //        });
 
-                    commandBuffer.AddComponent<ParentTransform>(entityInQueryIndex, entity);
-                })
-                .WithName("ReparentJob")
-                .ScheduleParallel();
+            //        commandBuffer.AddComponent<ParentTransform>(entityInQueryIndex, entity);
+            //    })
+            //    .WithName("ReparentJob")
+            //    .ScheduleParallel();
 
             barrier.AddJobHandleForProducer(Dependency);
         }

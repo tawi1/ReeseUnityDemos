@@ -29,7 +29,7 @@ namespace Reese.Nav
 
             Entities
                 .WithNone<NavProblem>()
-                .WithAll<NavPlanning, ParentTransform>()
+                .WithAll<NavPlanning>()
                 .WithReadOnly(localToWorldFromEntity)
                 .WithReadOnly(jumpingFromEntity)
                 .WithNativeDisableParallelForRestriction(pathBufferFromEntity)
@@ -116,11 +116,11 @@ namespace Reese.Nav
                         NavConstants.PATH_NODE_MAX
                     );
 
-                    var jumpBuffer = !jumpBufferFromEntity.HasComponent(entity) ?
+                    var jumpBuffer = !jumpBufferFromEntity.HasBuffer(entity) ?
                         commandBuffer.AddBuffer<NavJumpBufferElement>(entityInQueryIndex, entity) :
                         jumpBufferFromEntity[entity];
 
-                    var pathBuffer = !pathBufferFromEntity.HasComponent(entity) ?
+                    var pathBuffer = !pathBufferFromEntity.HasBuffer(entity) ?
                         commandBuffer.AddBuffer<NavPathBufferElement>(entityInQueryIndex, entity) :
                         pathBufferFromEntity[entity];
 

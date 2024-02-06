@@ -1,3 +1,5 @@
+using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -5,54 +7,76 @@ using Unity.Transforms;
 
 namespace Reese.Path
 {
-	[RequireMatchingQueriesForUpdate]
-    public partial class PathFollowSystem : SystemBase
+    [BurstCompile]
+    public partial struct PathFollowSystem : ISystem
     {
-        EntityCommandBufferSystem barrier => World.GetOrCreateSystemManaged<EndSimulationEntityCommandBufferSystem>();
+        private EntityQuery updateQuery;
 
-        protected override void OnUpdate()
+        public void OnCreate(ref SystemState state)
         {
-            var commandBuffer = barrier.CreateCommandBuffer().AsParallelWriter();
-
-            var localToWorldFromEntity = GetComponentLookup<LocalToWorld>(true);
-            var destinationFromEntity = GetComponentLookup<PathDestination>(true);
-
-            Entities
-                .WithAll<PathAgent>()
+            updateQuery = SystemAPI.QueryBuilder()
                 .WithNone<PathProblem>()
-                .WithReadOnly(localToWorldFromEntity)
-                .WithReadOnly(destinationFromEntity)
-                .ForEach((Entity entity, int entityInQueryIndex, in PathFollow follow) =>
+                .WithAll<PathAgent, PathFollow>()
+                .Build();
+
+            state.RequireForUpdate(updateQuery);
+        }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
+        {
+            var pathFollowJob = new PathFollowJob()
+            {
+                CommandBuffer = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
+                LocalToWorldFromEntity = SystemAPI.GetComponentLookup<LocalToWorld>(true),
+                DestinationFromEntity = SystemAPI.GetComponentLookup<PathDestination>(true),
+            };
+
+            pathFollowJob.ScheduleParallel(updateQuery);
+        }
+
+        [WithNone(typeof(PathProblem))]
+        [WithAll(typeof(PathAgent))]
+        [BurstCompile]
+        public partial struct PathFollowJob : IJobEntity
+        {
+            public EntityCommandBuffer.ParallelWriter CommandBuffer;
+
+            [ReadOnly]
+            public ComponentLookup<LocalToWorld> LocalToWorldFromEntity;
+
+            [ReadOnly]
+            public ComponentLookup<PathDestination> DestinationFromEntity;
+
+            void Execute(Entity entity, [ChunkIndexInQuery] int entityInQueryIndex, in PathFollow follow)
+            {
+                if (
+                       !LocalToWorldFromEntity.HasComponent(follow.Target) ||
+                       !DestinationFromEntity.HasComponent(follow.Target)
+                   ) return;
+
+                var followerPosition = LocalToWorldFromEntity[entity].Position;
+                var targetPosition = LocalToWorldFromEntity[follow.Target].Position;
+                var distance = math.distance(followerPosition, targetPosition);
+
+                if (follow.MaxDistance > 0 && distance > follow.MaxDistance)
                 {
-                    if (
-                        !localToWorldFromEntity.HasComponent(follow.Target) ||
-                        !destinationFromEntity.HasComponent(follow.Target)
-                    ) return;
+                    CommandBuffer.RemoveComponent<PathFollow>(entityInQueryIndex, entity);
+                    return;
+                }
 
-                    var followerPosition = localToWorldFromEntity[entity].Position;
-                    var targetPosition = localToWorldFromEntity[follow.Target].Position;
-                    var distance = math.distance(followerPosition, targetPosition);
+                if (distance < follow.MinDistance) return;
 
-                    if (follow.MaxDistance > 0 && distance > follow.MaxDistance)
-                    {
-                        commandBuffer.RemoveComponent<PathFollow>(entityInQueryIndex, entity);
-                        return;
-                    }
+                var targetDestination = DestinationFromEntity[follow.Target];
 
-                    if (distance < follow.MinDistance) return;
+                CommandBuffer.SetComponent(entityInQueryIndex, entity, new PathDestination
+                {
+                    WorldPoint = targetPosition,
+                    Tolerance = targetDestination.Tolerance
+                });
 
-                    var targetDestination = destinationFromEntity[follow.Target];
-
-                    commandBuffer.AddComponent(entityInQueryIndex, entity, new PathDestination
-                    {
-                        WorldPoint = targetPosition,
-                        Tolerance = targetDestination.Tolerance
-                    });
-                })
-                .WithName("PathFollowJob")
-                .ScheduleParallel();
-
-            barrier.AddJobHandleForProducer(Dependency);
+                CommandBuffer.SetComponentEnabled<PathDestination>(entityInQueryIndex, entity, true);
+            }
         }
     }
 }

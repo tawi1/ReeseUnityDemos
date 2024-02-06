@@ -107,7 +107,6 @@ namespace Reese.Nav
             if (!entityManager.HasComponent<Parent>(Entity))
             {
                 entityManager.AddComponent<Parent>(Entity);
-                entityManager.AddComponent<ParentTransform>(Entity);
             }
 
             if (!entityManager.HasComponent<LocalTransform>(Entity)) entityManager.AddComponent<LocalTransform>(Entity);

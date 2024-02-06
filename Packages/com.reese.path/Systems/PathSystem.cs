@@ -14,6 +14,8 @@ namespace Reese.Path
             PathSearchMax = 1000
         };
 
+        public static PathSettings SettingsStaticRef { get; private set; }
+
         /// <summary>Includes settings used by the navigation systems.</summary>
         public struct PathSettings
         {
@@ -28,6 +30,12 @@ namespace Reese.Path
 
             /// <summary>Upper limit on the search area size during path planning.</summary>
             public int PathSearchMax;
+        }
+
+        protected override void OnCreate()
+        {
+            base.OnCreate();
+            SettingsStaticRef = Settings;
         }
 
         protected override void OnUpdate() { }

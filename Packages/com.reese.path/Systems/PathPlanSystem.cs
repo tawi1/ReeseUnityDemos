@@ -55,9 +55,8 @@ namespace Reese.Path
 
                     if (!PathUtil.HasStatus(status, PathQueryStatus.Success))
                     {
-                        commandBuffer.RemoveComponent<PathPlanning>(entityInQueryIndex, entity);
-
-                        commandBuffer.RemoveComponent<PathDestination>(entityInQueryIndex, entity);
+                        commandBuffer.SetComponentEnabled<PathPlanning>(entityInQueryIndex, entity, false);
+                        commandBuffer.SetComponentEnabled<PathDestination>(entityInQueryIndex, entity, false);
 
                         commandBuffer.AddComponent(entityInQueryIndex, entity, new PathProblem
                         {
@@ -105,8 +104,8 @@ namespace Reese.Path
 
                         if (pathBuffer.Length > 0)
                         {
-                            commandBuffer.RemoveComponent<PathPlanning>(entityInQueryIndex, entity);
-                            commandBuffer.RemoveComponent<PathDestination>(entityInQueryIndex, entity);
+                            commandBuffer.SetComponentEnabled<PathPlanning>(entityInQueryIndex, entity, false);
+                            commandBuffer.SetComponentEnabled<PathDestination>(entityInQueryIndex, entity, false);
                         }
                     }
 

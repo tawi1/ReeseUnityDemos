@@ -41,8 +41,6 @@ namespace Reese.Nav
                     {
                         Value = basis.ParentBasis
                     });
-
-                    commandBuffer.AddComponent<ParentTransform>(entityInQueryIndex, entity);
                 })
                 .WithName("NavAddParentToBasisJob")
                 .ScheduleParallel();

@@ -79,7 +79,7 @@ namespace Reese.Nav
 
             Entities
                 .WithNone<NavProblem, NavPlanning>()
-                .WithAll<NavWalking, ParentTransform>()
+                .WithAll<NavWalking>()
                 .WithReadOnly(localToWorldFromEntity)
                 .WithReadOnly(physicsWorld)
                 .WithReadOnly(jumpingFromEntity)
@@ -139,7 +139,6 @@ namespace Reese.Nav
             Entities
                 .WithNone<NavProblem>()
                 .WithAny<NavFalling, NavJumping>()
-                .WithAll<ParentTransform>()
                 .WithReadOnly(fallingFromEntity)
                 .WithReadOnly(jumpBufferFromEntity)
                 .WithReadOnly(localToWorldFromEntity)

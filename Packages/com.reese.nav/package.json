@@ -7,12 +7,12 @@
 	"description": "DOTS navigation with flocking, auto-jumping agents and dynamic surfaces.",
 	"dependencies": {
 		"com.reese.math": "0.1.1",
-		"com.unity.entities": "1.0.0-pre.15",
-		"com.unity.physics": "1.0.0-pre.15",
-		"com.unity.entities.graphics": "1.0.0-pre.15"
+		"com.unity.entities": "1.0.16",
+		"com.unity.physics": "1.0.16",
+		"com.unity.entities.graphics": "1.0.16"
 	},
-	"unity": "2022.2",
-	"unityRelease": "4f1",
+	"unity": "2022.3",
+	"unityRelease": "11f1",
 	"author": {
 		"name": "Reese Schultz",
 		"email": "contact@reese.codes",

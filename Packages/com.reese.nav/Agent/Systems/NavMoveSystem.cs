@@ -37,7 +37,7 @@ namespace Reese.Nav
 
             Entities
                 .WithNone<NavProblem, NavPlanning>()
-                .WithAll<NavWalking, ParentTransform>()
+                .WithAll<NavWalking>()
                 .WithReadOnly(localToWorldFromEntity)
                 .ForEach(
                     (Entity entity, ref LocalTransform transform, in NavAgent agent, in NavSteering steering, in Parent surface) =>

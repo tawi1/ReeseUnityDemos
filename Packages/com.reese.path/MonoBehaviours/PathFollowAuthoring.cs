@@ -21,7 +21,7 @@ namespace Reese.Path
             {
                 AddComponent(new PathFollow
                 {
-                    Target = GetEntity(authoring.target),
+                    Target = GetEntity(authoring.target, TransformUsageFlags.Dynamic),
                     MaxDistance = authoring.maxDistance,
                     MinDistance = authoring.minDistance
                 });

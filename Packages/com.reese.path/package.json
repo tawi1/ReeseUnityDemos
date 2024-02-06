@@ -6,10 +6,10 @@
 	"displayName": "Reese's DOTS Pathing",
 	"description": "DOTS pathing without any bells and whistles.",
 	"dependencies": {
-		"com.unity.entities": "1.0.0-pre.15"
+		"com.unity.entities": "1.0.16"
 	},
-	"unity": "2022.2",
-	"unityRelease": "4f1",
+	"unity": "2022.3",
+	"unityRelease": "11f1",
 	"author": {
 		"name": "Reese Schultz",
 		"email": "contact@reese.codes",

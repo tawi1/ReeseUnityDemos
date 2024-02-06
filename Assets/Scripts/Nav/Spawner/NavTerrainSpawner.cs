@@ -96,7 +96,6 @@ namespace Reese.Demo
                 entityManager.AddComponentData(entities[i], LocalTransform.FromPosition(SpawnOffset));
                 entityManager.AddComponent<LocalToWorld>(entities[i]);
                 entityManager.AddComponent<Parent>(entities[i]);
-                entityManager.AddComponent<ParentTransform>(entities[i]);
                 entityManager.AddComponent<NavNeedsSurface>(entities[i]);
                 entityManager.AddComponent<NavTerrainCapable>(entities[i]);
             }

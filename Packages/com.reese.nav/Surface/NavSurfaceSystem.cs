@@ -70,8 +70,6 @@ namespace Reese.Nav
                             Value = surface.Basis
                         });
                     }
-
-                    commandBuffer.AddComponent<ParentTransform>(entityInQueryIndex, entity);
                 })
                 .WithName("NavAddParentToSurfaceJob")
                 .ScheduleParallel();
@@ -84,7 +82,6 @@ namespace Reese.Nav
                 .ForEach((Entity entity, int entityInQueryIndex, in NavAgent agent) =>
                 {
                     commandBuffer.AddComponent<Parent>(entityInQueryIndex, entity);
-                    commandBuffer.AddComponent<ParentTransform>(entityInQueryIndex, entity);
                 })
                 .WithName("NavAddParentToAgentJob")
                 .ScheduleParallel();
@@ -111,7 +108,7 @@ namespace Reese.Nav
 
             Entities
                 .WithNone<NavProblem, NavFalling, NavJumping>()
-                .WithAll<NavNeedsSurface, ParentTransform>()
+                .WithAll<NavNeedsSurface>()
                 .WithReadOnly(physicsWorld)
                 .WithNativeDisableParallelForRestriction(jumpBufferFromEntity)
                 .ForEach((Entity entity, int entityInQueryIndex, ref NavAgent agent, ref Parent surface, ref LocalTransform transform, in LocalToWorld localToWorld) =>
@@ -146,7 +143,7 @@ namespace Reese.Nav
 
                     transform.Position.y = hit.Position.y + agent.Offset.y;
 
-                    if (!jumpBufferFromEntity.HasComponent(entity)) return;
+                    if (!jumpBufferFromEntity.HasBuffer(entity)) return;
                     var jumpBuffer = jumpBufferFromEntity[entity];
                     if (jumpBuffer.Length < 1) return;
 
@@ -187,7 +184,7 @@ namespace Reese.Nav
 
             // Re-parents entities to ensure correct transform:
             Entities
-                .WithNone<NavAgent, ParentTransform>()
+                .WithNone<NavAgent>()
                 .ForEach((Entity entity, int entityInQueryIndex, in Parent parent) =>
                 {
                     commandBuffer.RemoveComponent<Parent>(entityInQueryIndex, entity);
@@ -196,8 +193,6 @@ namespace Reese.Nav
                     {
                         Value = parent.Value
                     });
-
-                    commandBuffer.AddComponent<ParentTransform>(entityInQueryIndex, entity);
                 })
                 .WithName("NavReparentingJob")
                 .ScheduleParallel();
