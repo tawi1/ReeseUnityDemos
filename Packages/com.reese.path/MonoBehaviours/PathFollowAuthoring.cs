@@ -19,7 +19,9 @@ namespace Reese.Path
         {
             public override void Bake(PathFollowAuthoring authoring)
             {
-                AddComponent(new PathFollow
+                var entity = GetEntity(TransformUsageFlags.Dynamic);
+
+                AddComponent(entity, new PathFollow
                 {
                     Target = GetEntity(authoring.target, TransformUsageFlags.Dynamic),
                     MaxDistance = authoring.maxDistance,
